@@ -13,8 +13,10 @@ import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-re
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const [reminders, setReminders] = React.useState<Reminder[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -76,7 +78,8 @@ export default function HomeScreen() {
         <FlatList
           data={reminders}
           keyExtractor={(r) => r.id}
-          contentContainerClassName="gap-3 p-4 pb-24"
+          contentContainerClassName="gap-3 p-4"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             loading ? null : (
@@ -93,7 +96,7 @@ export default function HomeScreen() {
             <ReminderCard reminder={item} onToggleActive={onToggleActive} />
           )}
         />
-        <View className="absolute bottom-6 right-6">
+        <View className="absolute right-6" style={{ bottom: insets.bottom + 24 }}>
           <Link href="/reminder/new" asChild>
             <Button size="lg">
               <Icon as={PlusIcon} className="text-primary-foreground" />

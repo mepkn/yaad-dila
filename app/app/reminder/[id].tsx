@@ -39,6 +39,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Platform, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 const UNIT_OPTIONS: { value: IntervalUnit; label: string }[] = [
@@ -64,6 +66,7 @@ const PRIORITY_OPTIONS = [
 ];
 
 export default function ReminderFormScreen() {
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const router = useRouter();
@@ -185,6 +188,7 @@ export default function ReminderFormScreen() {
       <KeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         bottomOffset={16}
         keyboardShouldPersistTaps="handled">
           <Card className="w-full max-w-sm">

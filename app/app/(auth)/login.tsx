@@ -9,9 +9,12 @@ import { Link } from 'expo-router';
 import * as React from 'react';
 import { View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -34,6 +37,7 @@ export default function LoginScreen() {
     <KeyboardAwareScrollView
       className="flex-1 bg-background"
       contentContainerClassName="flex-grow items-center justify-center p-4"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       bottomOffset={16}
       keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">

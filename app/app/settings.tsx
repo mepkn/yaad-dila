@@ -15,7 +15,10 @@ import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
 import { Stack } from 'expo-router';
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 const AUTH_OPTIONS: { value: NtfyAuthType; label: string }[] = [
   { value: 'none', label: 'None' },
@@ -24,6 +27,7 @@ const AUTH_OPTIONS: { value: NtfyAuthType; label: string }[] = [
 ];
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const [recordId, setRecordId] = React.useState<string | null>(null);
   const [baseUrl, setBaseUrl] = React.useState('');
   const [topic, setTopic] = React.useState('');
@@ -107,12 +111,12 @@ export default function SettingsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'ntfy settings' }} />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         className="flex-1 bg-background"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          contentContainerClassName="items-center p-4"
-          keyboardShouldPersistTaps="handled">
+        contentContainerClassName="items-center p-4"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        bottomOffset={16}
+        keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Your ntfy server</CardTitle>
@@ -212,8 +216,7 @@ export default function SettingsScreen() {
             </Button>
           </CardContent>
           </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </>
   );
 }
