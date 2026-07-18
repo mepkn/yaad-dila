@@ -13,4 +13,9 @@ services:
     environment:
       - TZ=UTC
     volumes:
-      - ./pb_data:/pb_data
+      - pb_data:/pb_data
+
+# Named volume (not a bind dir): compose runs inside the Dockhand container,
+# where relative host paths don't resolve — matches every other stack here.
+volumes:
+  pb_data:
