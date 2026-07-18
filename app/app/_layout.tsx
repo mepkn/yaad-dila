@@ -9,6 +9,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -52,6 +53,7 @@ export default function RootLayout() {
   }, [ready, loggedIn, segments, router]);
 
   return (
+    <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
     <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       {ready ? (
@@ -61,5 +63,6 @@ export default function RootLayout() {
       ) : null}
       <PortalHost />
     </ThemeProvider>
+    </KeyboardProvider>
   );
 }

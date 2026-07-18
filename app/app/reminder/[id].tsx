@@ -37,7 +37,9 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Platform, View } from 'react-native';
+
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 const UNIT_OPTIONS: { value: IntervalUnit; label: string }[] = [
   { value: 'minutes', label: 'Minutes' },
@@ -180,12 +182,11 @@ export default function ReminderFormScreen() {
   return (
     <>
       <Stack.Screen options={{ title: isNew ? 'New reminder' : 'Edit reminder' }} />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         className="flex-1 bg-background"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          contentContainerClassName="items-center p-4"
-          keyboardShouldPersistTaps="handled">
+        contentContainerClassName="items-center p-4"
+        bottomOffset={16}
+        keyboardShouldPersistTaps="handled">
           <Card className="w-full max-w-sm">
             <CardHeader>
               <CardTitle>{isNew ? 'New reminder' : 'Edit reminder'}</CardTitle>
@@ -336,8 +337,7 @@ export default function ReminderFormScreen() {
               ) : null}
             </CardContent>
           </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

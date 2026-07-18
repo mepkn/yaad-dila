@@ -7,7 +7,9 @@ import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { Link } from 'expo-router';
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 export default function SignupScreen() {
   const [email, setEmail] = React.useState('');
@@ -39,12 +41,11 @@ export default function SignupScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView
-        contentContainerClassName="flex-grow items-center justify-center p-4"
-        keyboardShouldPersistTaps="handled">
+      contentContainerClassName="flex-grow items-center justify-center p-4"
+      bottomOffset={16}
+      keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Sign up</CardTitle>
@@ -93,7 +94,6 @@ export default function SignupScreen() {
             </Link>
           </CardContent>
         </Card>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
