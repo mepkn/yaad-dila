@@ -1,6 +1,7 @@
 import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
+import { getStoredTheme } from '@/lib/theme-preference';
 import { authReady, pb } from '@/lib/pb';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
@@ -15,7 +16,7 @@ export {
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
   const [ready, setReady] = React.useState(false);
@@ -23,6 +24,9 @@ export default function RootLayout() {
 
   React.useEffect(() => {
     let mounted = true;
+    getStoredTheme().then((stored) => {
+      if (mounted && stored) setColorScheme(stored);
+    });
     authReady.then(() => {
       if (!mounted) return;
       setLoggedIn(pb.authStore.isValid);

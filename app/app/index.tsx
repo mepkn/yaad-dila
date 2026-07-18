@@ -8,7 +8,9 @@ import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { formatLocal, isFinished, type Reminder } from '@/lib/reminders';
 import { Link, Stack, useFocusEffect, useRouter } from 'expo-router';
-import { LogOutIcon, PlusIcon, SettingsIcon } from 'lucide-react-native';
+import { setStoredTheme } from '@/lib/theme-preference';
+import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 
@@ -151,8 +153,19 @@ function ReminderCard({
 }
 
 function HeaderActions() {
+  const { colorScheme, setColorScheme } = useColorScheme();
   return (
     <View className="flex-row">
+      <Button
+        variant="ghost"
+        size="icon"
+        onPress={() => {
+          const next = colorScheme === 'dark' ? 'light' : 'dark';
+          setColorScheme(next);
+          setStoredTheme(next);
+        }}>
+        <Icon as={colorScheme === 'dark' ? SunIcon : MoonIcon} className="size-5" />
+      </Button>
       <Link href="/settings" asChild>
         <Button variant="ghost" size="icon">
           <Icon as={SettingsIcon} className="size-5" />
