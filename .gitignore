@@ -1,5 +1,6 @@
 CLAUDE.md
 PHASES.md
 SPEC.md
-pocketbase
-pb_data
+backend/pocketbase
+backend/pb_data
+CLAUDE.local.md
