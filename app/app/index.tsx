@@ -12,11 +12,13 @@ import { setStoredTheme } from '@/lib/theme-preference';
 import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [reminders, setReminders] = React.useState<Reminder[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -67,7 +69,7 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Reminders',
+          title: t('reminders.title'),
           headerRight: () => <HeaderActions />,
         }}
       />
@@ -84,10 +86,9 @@ export default function HomeScreen() {
           ListEmptyComponent={
             loading ? null : (
               <View className="items-center gap-4 pt-24">
-                <Text className="text-lg font-semibold">No reminders yet</Text>
+                <Text className="text-lg font-semibold">{t('reminders.emptyTitle')}</Text>
                 <Text className="text-center text-sm text-muted-foreground">
-                  Tap “New reminder” to create your first one. Make sure your ntfy server is
-                  configured in Settings.
+                  {t('reminders.emptyBody')}
                 </Text>
               </View>
             )
@@ -100,7 +101,7 @@ export default function HomeScreen() {
           <Link href="/reminder/new" asChild>
             <Button size="lg">
               <Icon as={PlusIcon} className="text-primary-foreground" />
-              <Text>New reminder</Text>
+              <Text>{t('reminders.newReminder')}</Text>
             </Button>
           </Link>
         </View>
@@ -117,6 +118,7 @@ function ReminderCard({
   onToggleActive: (reminder: Reminder, active: boolean) => void;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const finished = isFinished(reminder);
   return (
     <Pressable onPress={() => router.push(`/reminder/${reminder.id}`)}>
@@ -127,7 +129,7 @@ function ReminderCard({
           </CardTitle>
           {finished ? (
             <Badge variant="secondary">
-              <Text>Finished</Text>
+              <Text>{t('reminders.finished')}</Text>
             </Badge>
           ) : (
             <Switch
@@ -139,14 +141,14 @@ function ReminderCard({
         <CardContent className="gap-1">
           <Text className="text-sm text-muted-foreground">
             {finished
-              ? `Done — fired ${reminder.fired_count}×`
+              ? t('reminders.doneFired', { count: reminder.fired_count })
               : reminder.active
-                ? `Next: ${formatLocal(reminder.next_fire)}`
-                : 'Paused'}
+                ? t('reminders.next', { date: formatLocal(reminder.next_fire) })
+                : t('reminders.paused')}
           </Text>
           {reminder.last_error ? (
             <Text className="text-sm text-destructive" numberOfLines={2}>
-              Last send failed: {reminder.last_error}
+              {t('reminders.lastSendFailed', { error: reminder.last_error })}
             </Text>
           ) : null}
         </CardContent>

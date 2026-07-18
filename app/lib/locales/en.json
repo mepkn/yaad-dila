@@ -1,0 +1,99 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "working": "Working…"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "emptyTitle": "No reminders yet",
+    "emptyBody": "Tap “New reminder” to create your first one. Make sure your ntfy server is configured in Settings.",
+    "newReminder": "New reminder",
+    "finished": "Finished",
+    "paused": "Paused",
+    "doneFired": "Done — fired {{count}}×",
+    "next": "Next: {{date}}",
+    "lastSendFailed": "Last send failed: {{error}}"
+  },
+  "settings": {
+    "title": "ntfy settings",
+    "cardTitle": "Your ntfy server",
+    "baseUrl": "Base URL",
+    "topic": "Topic",
+    "authentication": "Authentication",
+    "authPlaceholder": "Select auth type",
+    "authNone": "None",
+    "authToken": "Token",
+    "authBasic": "Username + password",
+    "accessToken": "Access token",
+    "username": "Username",
+    "password": "Password",
+    "saved": "Saved.",
+    "sendTest": "Send test notification",
+    "testSent": "Test notification sent — check your phone.",
+    "language": "Language",
+    "languagePlaceholder": "Select language"
+  },
+  "reminder": {
+    "newTitle": "New reminder",
+    "editTitle": "Edit reminder",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Water the plants",
+    "messageLabel": "Message",
+    "messagePlaceholder": "They are thirsty.",
+    "starts": "Starts",
+    "every": "Every",
+    "unit": "Unit",
+    "repeat": "Repeat",
+    "totalFires": "Total fires",
+    "priority": "Priority",
+    "create": "Create",
+    "unitMinutes": "Minutes",
+    "unitHours": "Hours",
+    "unitDays": "Days",
+    "unitWeeks": "Weeks",
+    "unitMonths": "Months",
+    "repeatOnce": "Once",
+    "repeatForever": "Forever",
+    "repeatCount": "Stop after N times",
+    "priority1": "1 — Min",
+    "priority2": "2 — Low",
+    "priority3": "3 — Default",
+    "priority4": "4 — High",
+    "priority5": "5 — Max",
+    "deleteTitle": "Delete this reminder?",
+    "deleteBody": "“{{title}}” will stop firing and cannot be recovered.",
+    "lastSendFailed": "Last send failed: {{error}}"
+  },
+  "auth": {
+    "login": "Log in",
+    "loggingIn": "Logging in…",
+    "signup": "Sign up",
+    "creatingAccount": "Creating account…",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "min. 8 characters",
+    "confirmPassword": "Confirm password",
+    "confirmPlaceholder": "repeat password",
+    "passwordsMismatch": "Passwords do not match.",
+    "noAccount": "No account? Sign up",
+    "haveAccount": "Have an account? Log in"
+  },
+  "errors": {
+    "serverUnreachable": "Cannot reach the server at {{url}}. Check EXPO_PUBLIC_POCKETBASE_URL — a phone cannot reach 127.0.0.1.",
+    "invalidField": "invalid"
+  },
+  "ntfy": {
+    "missingConfig": "Base URL and topic are required.",
+    "httpError": "ntfy returned HTTP {{status}}",
+    "testTitle": "Test notification",
+    "testBody": "If you can read this, your ntfy setup works."
+  },
+  "notFound": {
+    "title": "Oops!",
+    "body": "This screen doesn't exist.",
+    "goHome": "Go to home screen!"
+  }
+}

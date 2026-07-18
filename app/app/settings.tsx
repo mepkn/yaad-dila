@@ -13,21 +13,28 @@ import { Text } from '@/components/ui/text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
+import { LANGUAGE_OPTIONS, setAppLanguage } from '@/lib/i18n';
+import { type AppLanguage } from '@/lib/locale-preference';
 import { Stack } from 'expo-router';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
-const AUTH_OPTIONS: { value: NtfyAuthType; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'token', label: 'Token' },
-  { value: 'basic', label: 'Username + password' },
-];
+const AUTH_VALUES: NtfyAuthType[] = ['none', 'token', 'basic'];
+
+const AUTH_LABEL_KEYS: Record<NtfyAuthType, string> = {
+  none: 'settings.authNone',
+  token: 'settings.authToken',
+  basic: 'settings.authBasic',
+};
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
+  const authOptions = AUTH_VALUES.map((value) => ({ value, label: t(AUTH_LABEL_KEYS[value]) }));
   const [recordId, setRecordId] = React.useState<string | null>(null);
   const [baseUrl, setBaseUrl] = React.useState('');
   const [topic, setTopic] = React.useState('');
@@ -87,7 +94,7 @@ export default function SettingsScreen() {
         const rec = await pb.collection('ntfy_config').create(data);
         setRecordId(rec.id);
       }
-      setStatus({ kind: 'ok', text: 'Saved.' });
+      setStatus({ kind: 'ok', text: t('settings.saved') });
     } catch (err) {
       setStatus({ kind: 'error', text: describeError(err) });
     } finally {
@@ -100,7 +107,7 @@ export default function SettingsScreen() {
     setStatus(null);
     try {
       await sendTestNotification(currentSettings());
-      setStatus({ kind: 'ok', text: 'Test notification sent — check your phone.' });
+      setStatus({ kind: 'ok', text: t('settings.testSent') });
     } catch (err) {
       setStatus({ kind: 'error', text: describeError(err) });
     } finally {
@@ -110,7 +117,7 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'ntfy settings' }} />
+      <Stack.Screen options={{ title: t('settings.title') }} />
       <KeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
@@ -119,11 +126,11 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Your ntfy server</CardTitle>
+            <CardTitle>{t('settings.cardTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="gap-4">
             <View className="gap-1.5">
-              <Label nativeID="base_url">Base URL</Label>
+              <Label nativeID="base_url">{t('settings.baseUrl')}</Label>
               <Input
                 aria-labelledby="base_url"
                 value={baseUrl}
@@ -135,7 +142,7 @@ export default function SettingsScreen() {
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="topic">Topic</Label>
+              <Label nativeID="topic">{t('settings.topic')}</Label>
               <Input
                 aria-labelledby="topic"
                 value={topic}
@@ -146,17 +153,34 @@ export default function SettingsScreen() {
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="auth_type">Authentication</Label>
+              <Label nativeID="auth_type">{t('settings.authentication')}</Label>
               <Select
-                value={AUTH_OPTIONS.find((o) => o.value === authType)}
+                value={authOptions.find((o) => o.value === authType)}
                 onValueChange={(option) => {
                   if (option) setAuthType(option.value as NtfyAuthType);
                 }}>
                 <SelectTrigger aria-labelledby="auth_type">
-                  <SelectValue placeholder="Select auth type" />
+                  <SelectValue placeholder={t('settings.authPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {AUTH_OPTIONS.map((o) => (
+                  {authOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value} label={o.label} />
+                  ))}
+                </SelectContent>
+              </Select>
+            </View>
+            <View className="gap-1.5">
+              <Label nativeID="language">{t('settings.language')}</Label>
+              <Select
+                value={LANGUAGE_OPTIONS.find((o) => o.value === i18n.language)}
+                onValueChange={(option) => {
+                  if (option) setAppLanguage(option.value as AppLanguage);
+                }}>
+                <SelectTrigger aria-labelledby="language">
+                  <SelectValue placeholder={t('settings.languagePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGE_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value} label={o.label} />
                   ))}
                 </SelectContent>
@@ -164,7 +188,7 @@ export default function SettingsScreen() {
             </View>
             {authType === 'token' ? (
               <View className="gap-1.5">
-                <Label nativeID="token">Access token</Label>
+                <Label nativeID="token">{t('settings.accessToken')}</Label>
                 <Input
                   aria-labelledby="token"
                   value={token}
@@ -178,7 +202,7 @@ export default function SettingsScreen() {
             {authType === 'basic' ? (
               <>
                 <View className="gap-1.5">
-                  <Label nativeID="username">Username</Label>
+                  <Label nativeID="username">{t('settings.username')}</Label>
                   <Input
                     aria-labelledby="username"
                     value={username}
@@ -187,7 +211,7 @@ export default function SettingsScreen() {
                   />
                 </View>
                 <View className="gap-1.5">
-                  <Label nativeID="password">Password</Label>
+                  <Label nativeID="password">{t('settings.password')}</Label>
                   <Input
                     aria-labelledby="password"
                     value={password}
@@ -206,13 +230,13 @@ export default function SettingsScreen() {
               </Text>
             ) : null}
             <Button onPress={onSave} disabled={busy || loading || !baseUrl || !topic}>
-              <Text>{busy ? 'Working…' : 'Save'}</Text>
+              <Text>{busy ? t('common.working') : t('common.save')}</Text>
             </Button>
             <Button
               variant="secondary"
               onPress={onSendTest}
               disabled={busy || loading || !baseUrl || !topic}>
-              <Text>Send test notification</Text>
+              <Text>{t('settings.sendTest')}</Text>
             </Button>
           </CardContent>
           </Card>

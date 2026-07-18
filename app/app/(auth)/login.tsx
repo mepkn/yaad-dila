@@ -7,6 +7,7 @@ import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { Link } from 'expo-router';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -42,11 +44,11 @@ export default function LoginScreen() {
       keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Log in</CardTitle>
+          <CardTitle>{t('auth.login')}</CardTitle>
         </CardHeader>
         <CardContent className="gap-4">
           <View className="gap-1.5">
-            <Label nativeID="email">Email</Label>
+            <Label nativeID="email">{t('auth.email')}</Label>
             <Input
               aria-labelledby="email"
               value={email}
@@ -54,11 +56,11 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
             />
           </View>
           <View className="gap-1.5">
-            <Label nativeID="password">Password</Label>
+            <Label nativeID="password">{t('auth.password')}</Label>
             <Input
               aria-labelledby="password"
               value={password}
@@ -69,11 +71,11 @@ export default function LoginScreen() {
           </View>
           {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
           <Button onPress={onLogin} disabled={busy || !email || !password}>
-            <Text>{busy ? 'Logging in…' : 'Log in'}</Text>
+            <Text>{busy ? t('auth.loggingIn') : t('auth.login')}</Text>
           </Button>
           <Link href="/(auth)/signup" asChild>
             <Button variant="ghost">
-              <Text>No account? Sign up</Text>
+              <Text>{t('auth.noAccount')}</Text>
             </Button>
           </Link>
         </CardContent>

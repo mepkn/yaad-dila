@@ -7,6 +7,7 @@ import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { Link } from 'expo-router';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view
 
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirm, setConfirm] = React.useState('');
@@ -23,7 +25,7 @@ export default function SignupScreen() {
 
   async function onSignup() {
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('auth.passwordsMismatch'));
       return;
     }
     setBusy(true);
@@ -52,11 +54,11 @@ export default function SignupScreen() {
       keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Sign up</CardTitle>
+            <CardTitle>{t('auth.signup')}</CardTitle>
           </CardHeader>
           <CardContent className="gap-4">
             <View className="gap-1.5">
-              <Label nativeID="email">Email</Label>
+              <Label nativeID="email">{t('auth.email')}</Label>
               <Input
                 aria-labelledby="email"
                 value={email}
@@ -64,36 +66,36 @@ export default function SignupScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="password">Password</Label>
+              <Label nativeID="password">{t('auth.password')}</Label>
               <Input
                 aria-labelledby="password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                placeholder="min. 8 characters"
+                placeholder={t('auth.passwordPlaceholder')}
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="confirm">Confirm password</Label>
+              <Label nativeID="confirm">{t('auth.confirmPassword')}</Label>
               <Input
                 aria-labelledby="confirm"
                 value={confirm}
                 onChangeText={setConfirm}
                 secureTextEntry
-                placeholder="repeat password"
+                placeholder={t('auth.confirmPlaceholder')}
               />
             </View>
             {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
             <Button onPress={onSignup} disabled={busy || !email || !password || !confirm}>
-              <Text>{busy ? 'Creating account…' : 'Sign up'}</Text>
+              <Text>{busy ? t('auth.creatingAccount') : t('auth.signup')}</Text>
             </Button>
             <Link href="/(auth)/login" asChild>
               <Button variant="ghost">
-                <Text>Have an account? Log in</Text>
+                <Text>{t('auth.haveAccount')}</Text>
               </Button>
             </Link>
           </CardContent>

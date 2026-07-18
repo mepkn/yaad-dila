@@ -1,6 +1,8 @@
 // Client-side ntfy publish, used only by the "Send test notification" button.
 // Mirrors the server's pb_hooks/lib.js sending logic (SPEC §3).
 
+import i18n from '@/lib/i18n';
+
 export type NtfyAuthType = 'none' | 'token' | 'basic';
 
 export interface NtfySettings {
@@ -37,11 +39,11 @@ export async function sendTestNotification(settings: NtfySettings): Promise<void
   const baseUrl = settings.base_url.trim().replace(/\/+$/, '');
   const topic = settings.topic.trim();
   if (baseUrl === '' || topic === '') {
-    throw new Error('Base URL and topic are required.');
+    throw new Error(i18n.t('ntfy.missingConfig'));
   }
 
   const headers: Record<string, string> = {
-    Title: 'Test notification',
+    Title: i18n.t('ntfy.testTitle'),
     Priority: '3',
   };
   if (settings.auth_type === 'token') {
@@ -53,9 +55,9 @@ export async function sendTestNotification(settings: NtfySettings): Promise<void
   const res = await fetch(`${baseUrl}/${topic}`, {
     method: 'POST',
     headers,
-    body: 'If you can read this, your ntfy setup works.',
+    body: i18n.t('ntfy.testBody'),
   });
   if (!res.ok) {
-    throw new Error(`ntfy returned HTTP ${res.status}`);
+    throw new Error(i18n.t('ntfy.httpError', { status: res.status }));
   }
 }

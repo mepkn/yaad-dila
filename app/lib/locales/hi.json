@@ -1,0 +1,99 @@
+{
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएँ",
+    "working": "प्रक्रिया जारी…"
+  },
+  "reminders": {
+    "title": "रिमाइंडर",
+    "emptyTitle": "अभी कोई रिमाइंडर नहीं",
+    "emptyBody": "पहला रिमाइंडर बनाने के लिए “नया रिमाइंडर” दबाएँ। सुनिश्चित करें कि सेटिंग्स में आपका ntfy सर्वर कॉन्फ़िगर है।",
+    "newReminder": "नया रिमाइंडर",
+    "finished": "पूर्ण",
+    "paused": "रुका हुआ",
+    "doneFired": "पूर्ण — {{count}} बार भेजा गया",
+    "next": "अगला: {{date}}",
+    "lastSendFailed": "पिछला भेजना विफल: {{error}}"
+  },
+  "settings": {
+    "title": "ntfy सेटिंग्स",
+    "cardTitle": "आपका ntfy सर्वर",
+    "baseUrl": "बेस URL",
+    "topic": "टॉपिक",
+    "authentication": "प्रमाणीकरण",
+    "authPlaceholder": "प्रमाणीकरण प्रकार चुनें",
+    "authNone": "कोई नहीं",
+    "authToken": "टोकन",
+    "authBasic": "यूज़रनेम + पासवर्ड",
+    "accessToken": "एक्सेस टोकन",
+    "username": "यूज़रनेम",
+    "password": "पासवर्ड",
+    "saved": "सहेज लिया गया।",
+    "sendTest": "टेस्ट नोटिफ़िकेशन भेजें",
+    "testSent": "टेस्ट नोटिफ़िकेशन भेजा गया — अपना फ़ोन देखें।",
+    "language": "भाषा",
+    "languagePlaceholder": "भाषा चुनें"
+  },
+  "reminder": {
+    "newTitle": "नया रिमाइंडर",
+    "editTitle": "रिमाइंडर संपादित करें",
+    "titleLabel": "शीर्षक",
+    "titlePlaceholder": "पौधों को पानी दें",
+    "messageLabel": "संदेश",
+    "messagePlaceholder": "वे प्यासे हैं।",
+    "starts": "शुरुआत",
+    "every": "हर",
+    "unit": "इकाई",
+    "repeat": "दोहराव",
+    "totalFires": "कुल बार",
+    "priority": "प्राथमिकता",
+    "create": "बनाएँ",
+    "unitMinutes": "मिनट",
+    "unitHours": "घंटे",
+    "unitDays": "दिन",
+    "unitWeeks": "सप्ताह",
+    "unitMonths": "महीने",
+    "repeatOnce": "एक बार",
+    "repeatForever": "हमेशा",
+    "repeatCount": "N बार के बाद रोकें",
+    "priority1": "1 — न्यूनतम",
+    "priority2": "2 — कम",
+    "priority3": "3 — डिफ़ॉल्ट",
+    "priority4": "4 — उच्च",
+    "priority5": "5 — अधिकतम",
+    "deleteTitle": "यह रिमाइंडर हटाएँ?",
+    "deleteBody": "“{{title}}” भेजना बंद हो जाएगा और इसे वापस नहीं लाया जा सकेगा।",
+    "lastSendFailed": "पिछला भेजना विफल: {{error}}"
+  },
+  "auth": {
+    "login": "लॉग इन",
+    "loggingIn": "लॉग इन हो रहा है…",
+    "signup": "साइन अप",
+    "creatingAccount": "खाता बनाया जा रहा है…",
+    "email": "ईमेल",
+    "emailPlaceholder": "you@example.com",
+    "password": "पासवर्ड",
+    "passwordPlaceholder": "कम से कम 8 अक्षर",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "confirmPlaceholder": "पासवर्ड दोबारा लिखें",
+    "passwordsMismatch": "पासवर्ड मेल नहीं खाते।",
+    "noAccount": "खाता नहीं है? साइन अप करें",
+    "haveAccount": "खाता है? लॉग इन करें"
+  },
+  "errors": {
+    "serverUnreachable": "{{url}} पर सर्वर से संपर्क नहीं हो पा रहा। EXPO_PUBLIC_POCKETBASE_URL जाँचें — फ़ोन 127.0.0.1 तक नहीं पहुँच सकता।",
+    "invalidField": "अमान्य"
+  },
+  "ntfy": {
+    "missingConfig": "बेस URL और टॉपिक आवश्यक हैं।",
+    "httpError": "ntfy ने HTTP {{status}} लौटाया",
+    "testTitle": "टेस्ट नोटिफ़िकेशन",
+    "testBody": "अगर आप इसे पढ़ पा रहे हैं, तो आपका ntfy सेटअप काम कर रहा है।"
+  },
+  "notFound": {
+    "title": "उफ़!",
+    "body": "यह स्क्रीन मौजूद नहीं है।",
+    "goHome": "होम स्क्रीन पर जाएँ!"
+  }
+}

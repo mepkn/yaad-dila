@@ -37,36 +37,44 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
-const UNIT_OPTIONS: { value: IntervalUnit; label: string }[] = [
-  { value: 'minutes', label: 'Minutes' },
-  { value: 'hours', label: 'Hours' },
-  { value: 'days', label: 'Days' },
-  { value: 'weeks', label: 'Weeks' },
-  { value: 'months', label: 'Months' },
-];
+const UNIT_LABEL_KEYS: Record<IntervalUnit, string> = {
+  minutes: 'reminder.unitMinutes',
+  hours: 'reminder.unitHours',
+  days: 'reminder.unitDays',
+  weeks: 'reminder.unitWeeks',
+  months: 'reminder.unitMonths',
+};
 
-const REPEAT_OPTIONS: { value: RepeatMode; label: string }[] = [
-  { value: 'once', label: 'Once' },
-  { value: 'forever', label: 'Forever' },
-  { value: 'count', label: 'Stop after N times' },
-];
+const REPEAT_LABEL_KEYS: Record<RepeatMode, string> = {
+  once: 'reminder.repeatOnce',
+  forever: 'reminder.repeatForever',
+  count: 'reminder.repeatCount',
+};
 
-const PRIORITY_OPTIONS = [
-  { value: '1', label: '1 — Min' },
-  { value: '2', label: '2 — Low' },
-  { value: '3', label: '3 — Default' },
-  { value: '4', label: '4 — High' },
-  { value: '5', label: '5 — Max' },
-];
+const PRIORITY_VALUES = ['1', '2', '3', '4', '5'] as const;
 
 export default function ReminderFormScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const unitOptions = (Object.keys(UNIT_LABEL_KEYS) as IntervalUnit[]).map((value) => ({
+    value,
+    label: t(UNIT_LABEL_KEYS[value]),
+  }));
+  const repeatOptions = (Object.keys(REPEAT_LABEL_KEYS) as RepeatMode[]).map((value) => ({
+    value,
+    label: t(REPEAT_LABEL_KEYS[value]),
+  }));
+  const priorityOptions = PRIORITY_VALUES.map((value) => ({
+    value,
+    label: t(`reminder.priority${value}`),
+  }));
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const router = useRouter();
@@ -184,7 +192,7 @@ export default function ReminderFormScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: isNew ? 'New reminder' : 'Edit reminder' }} />
+      <Stack.Screen options={{ title: isNew ? t('reminder.newTitle') : t('reminder.editTitle') }} />
       <KeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
@@ -193,34 +201,34 @@ export default function ReminderFormScreen() {
         keyboardShouldPersistTaps="handled">
           <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle>{isNew ? 'New reminder' : 'Edit reminder'}</CardTitle>
+              <CardTitle>{isNew ? t('reminder.newTitle') : t('reminder.editTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="gap-4">
               {lastError ? (
-                <Text className="text-sm text-destructive">Last send failed: {lastError}</Text>
+                <Text className="text-sm text-destructive">{t('reminder.lastSendFailed', { error: lastError })}</Text>
               ) : null}
               <View className="gap-1.5">
-                <Label nativeID="title">Title</Label>
+                <Label nativeID="title">{t('reminder.titleLabel')}</Label>
                 <Input
                   aria-labelledby="title"
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="Water the plants"
+                  placeholder={t('reminder.titlePlaceholder')}
                   editable={!loading}
                 />
               </View>
               <View className="gap-1.5">
-                <Label nativeID="message">Message</Label>
+                <Label nativeID="message">{t('reminder.messageLabel')}</Label>
                 <Textarea
                   aria-labelledby="message"
                   value={message}
                   onChangeText={setMessage}
-                  placeholder="They are thirsty."
+                  placeholder={t('reminder.messagePlaceholder')}
                   editable={!loading}
                 />
               </View>
               <View className="gap-1.5">
-                <Label>Starts</Label>
+                <Label>{t('reminder.starts')}</Label>
                 <Button variant="outline" onPress={onPickStartAt} disabled={loading}>
                   <Text>{formatLocal(startAt.toISOString())}</Text>
                 </Button>
@@ -237,7 +245,7 @@ export default function ReminderFormScreen() {
               </View>
               <View className="flex-row gap-3">
                 <View className="flex-1 gap-1.5">
-                  <Label nativeID="interval_n">Every</Label>
+                  <Label nativeID="interval_n">{t('reminder.every')}</Label>
                   <Input
                     aria-labelledby="interval_n"
                     value={intervalN}
@@ -247,17 +255,17 @@ export default function ReminderFormScreen() {
                   />
                 </View>
                 <View className="flex-[2] gap-1.5">
-                  <Label nativeID="interval_unit">Unit</Label>
+                  <Label nativeID="interval_unit">{t('reminder.unit')}</Label>
                   <Select
-                    value={UNIT_OPTIONS.find((o) => o.value === intervalUnit)}
+                    value={unitOptions.find((o) => o.value === intervalUnit)}
                     onValueChange={(option) => {
                       if (option) setIntervalUnit(option.value as IntervalUnit);
                     }}>
                     <SelectTrigger aria-labelledby="interval_unit">
-                      <SelectValue placeholder="Unit" />
+                      <SelectValue placeholder={t('reminder.unit')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {UNIT_OPTIONS.map((o) => (
+                      {unitOptions.map((o) => (
                         <SelectItem key={o.value} value={o.value} label={o.label} />
                       ))}
                     </SelectContent>
@@ -265,17 +273,17 @@ export default function ReminderFormScreen() {
                 </View>
               </View>
               <View className="gap-1.5">
-                <Label nativeID="repeat_mode">Repeat</Label>
+                <Label nativeID="repeat_mode">{t('reminder.repeat')}</Label>
                 <Select
-                  value={REPEAT_OPTIONS.find((o) => o.value === repeatMode)}
+                  value={repeatOptions.find((o) => o.value === repeatMode)}
                   onValueChange={(option) => {
                     if (option) setRepeatMode(option.value as RepeatMode);
                   }}>
                   <SelectTrigger aria-labelledby="repeat_mode">
-                    <SelectValue placeholder="Repeat" />
+                    <SelectValue placeholder={t('reminder.repeat')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {REPEAT_OPTIONS.map((o) => (
+                    {repeatOptions.map((o) => (
                       <SelectItem key={o.value} value={o.value} label={o.label} />
                     ))}
                   </SelectContent>
@@ -283,7 +291,7 @@ export default function ReminderFormScreen() {
               </View>
               {repeatMode === 'count' ? (
                 <View className="gap-1.5">
-                  <Label nativeID="repeat_count">Total fires</Label>
+                  <Label nativeID="repeat_count">{t('reminder.totalFires')}</Label>
                   <Input
                     aria-labelledby="repeat_count"
                     value={repeatCount}
@@ -294,17 +302,17 @@ export default function ReminderFormScreen() {
                 </View>
               ) : null}
               <View className="gap-1.5">
-                <Label nativeID="priority">Priority</Label>
+                <Label nativeID="priority">{t('reminder.priority')}</Label>
                 <Select
-                  value={PRIORITY_OPTIONS.find((o) => o.value === priority)}
+                  value={priorityOptions.find((o) => o.value === priority)}
                   onValueChange={(option) => {
                     if (option) setPriority(option.value);
                   }}>
                   <SelectTrigger aria-labelledby="priority">
-                    <SelectValue placeholder="Priority" />
+                    <SelectValue placeholder={t('reminder.priority')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {PRIORITY_OPTIONS.map((o) => (
+                    {priorityOptions.map((o) => (
                       <SelectItem key={o.value} value={o.value} label={o.label} />
                     ))}
                   </SelectContent>
@@ -312,28 +320,28 @@ export default function ReminderFormScreen() {
               </View>
               {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
               <Button onPress={onSave} disabled={!canSave}>
-                <Text>{busy ? 'Working…' : isNew ? 'Create' : 'Save'}</Text>
+                <Text>{busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}</Text>
               </Button>
               {!isNew ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" disabled={busy || loading}>
-                      <Text>Delete</Text>
+                      <Text>{t('common.delete')}</Text>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete this reminder?</AlertDialogTitle>
+                      <AlertDialogTitle>{t('reminder.deleteTitle')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        “{title}” will stop firing and cannot be recovered.
+                        {t('reminder.deleteBody', { title })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>
-                        <Text>Cancel</Text>
+                        <Text>{t('common.cancel')}</Text>
                       </AlertDialogCancel>
                       <AlertDialogAction onPress={onDelete}>
-                        <Text>Delete</Text>
+                        <Text>{t('common.delete')}</Text>
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

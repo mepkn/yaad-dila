@@ -1,3 +1,4 @@
+import i18n from '@/lib/i18n';
 export type IntervalUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 export type RepeatMode = 'once' | 'forever' | 'count';
 
@@ -27,7 +28,7 @@ export function parseUTC(value: string): Date {
 export function formatLocal(value: string): string {
   const d = parseUTC(value);
   if (isNaN(d.getTime())) return '—';
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(i18n.language, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

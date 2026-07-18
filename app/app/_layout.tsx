@@ -1,5 +1,7 @@
 import '@/global.css';
 
+import i18n from '@/lib/i18n';
+import { getStoredLanguage } from '@/lib/locale-preference';
 import { NAV_THEME } from '@/lib/theme';
 import { getStoredTheme } from '@/lib/theme-preference';
 import { authReady, pb } from '@/lib/pb';
@@ -27,6 +29,9 @@ export default function RootLayout() {
     let mounted = true;
     getStoredTheme().then((stored) => {
       if (mounted && stored) setColorScheme(stored);
+    });
+    getStoredLanguage().then((stored) => {
+      if (mounted && stored && stored !== i18n.language) i18n.changeLanguage(stored);
     });
     authReady.then(() => {
       if (!mounted) return;
