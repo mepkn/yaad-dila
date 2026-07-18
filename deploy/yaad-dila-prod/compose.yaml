@@ -1,12 +1,12 @@
-# Source of truth for the VPS stack `pocketbase-prod` (Dockhand).
-# Deploy: update the image tag to the commit SHA you want, copy this file to
-# /app/data/stacks/vps-cmav/pocketbase-prod/ and re-up the stack.
+# Source of truth for the VPS stack `yaad-dila-prod` (Dockhand git stack).
+# Deploy: bump the image tag to the commit SHA you want, push, then pull +
+# redeploy the stack in Dockhand.
 # The tunnel maps yaad-dila.pknspace.com -> http://localhost:5340 (Cloudflare dashboard).
 services:
   pocketbase:
     # Immutable tag (commit SHA from the backend-image workflow). Never :latest.
     image: ghcr.io/mepkn/yaad-dila-backend:3e3854c
-    container_name: pocketbase
+    container_name: yaad-dila-pocketbase
     restart: unless-stopped
     ports:
       - '127.0.0.1:5340:8090'
@@ -19,3 +19,4 @@ services:
 # where relative host paths don't resolve — matches every other stack here.
 volumes:
   pb_data:
+    name: yaad-dila-pb-data
