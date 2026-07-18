@@ -5,7 +5,7 @@
 services:
   pocketbase:
     # Immutable tag (commit SHA from the backend-image workflow). Never :latest.
-    image: ghcr.io/mepkn/yaad-dila-backend:REPLACE_WITH_SHA
+    image: ghcr.io/mepkn/yaad-dila-backend:3e3854c
     container_name: pocketbase
     restart: unless-stopped
     ports:
