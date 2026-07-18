@@ -12,6 +12,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { configureReanimatedLogger } from 'react-native-reanimated';
+
+// Library code (keyboard-controller / RNR animations) trips Reanimated's
+// dev-only strict warnings; we write no Reanimated code ourselves.
+configureReanimatedLogger({ strict: false });
 
 export {
   // Catch any errors thrown by the Layout component.
