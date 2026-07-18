@@ -17,8 +17,7 @@
     "lastSendFailed": "पिछला भेजना विफल: {{error}}"
   },
   "settings": {
-    "title": "ntfy सेटिंग्स",
-    "cardTitle": "आपका ntfy सर्वर",
+    "title": "सेटिंग्स",
     "baseUrl": "बेस URL",
     "topic": "टॉपिक",
     "authentication": "प्रमाणीकरण",

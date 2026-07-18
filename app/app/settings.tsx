@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -125,9 +125,6 @@ export default function SettingsScreen() {
         bottomOffset={16}
         keyboardShouldPersistTaps="handled">
         <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle>{t('settings.cardTitle')}</CardTitle>
-          </CardHeader>
           <CardContent className="gap-4">
             <View className="gap-1.5">
               <Label nativeID="base_url">{t('settings.baseUrl')}</Label>
@@ -169,23 +166,6 @@ export default function SettingsScreen() {
                 </SelectContent>
               </Select>
             </View>
-            <View className="gap-1.5">
-              <Label nativeID="language">{t('settings.language')}</Label>
-              <Select
-                value={LANGUAGE_OPTIONS.find((o) => o.value === i18n.language)}
-                onValueChange={(option) => {
-                  if (option) setAppLanguage(option.value as AppLanguage);
-                }}>
-                <SelectTrigger aria-labelledby="language">
-                  <SelectValue placeholder={t('settings.languagePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANGUAGE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value} label={o.label} />
-                  ))}
-                </SelectContent>
-              </Select>
-            </View>
             {authType === 'token' ? (
               <View className="gap-1.5">
                 <Label nativeID="token">{t('settings.accessToken')}</Label>
@@ -221,6 +201,23 @@ export default function SettingsScreen() {
                 </View>
               </>
             ) : null}
+            <View className="gap-1.5">
+              <Label nativeID="language">{t('settings.language')}</Label>
+              <Select
+                value={LANGUAGE_OPTIONS.find((o) => o.value === i18n.language)}
+                onValueChange={(option) => {
+                  if (option) setAppLanguage(option.value as AppLanguage);
+                }}>
+                <SelectTrigger aria-labelledby="language">
+                  <SelectValue placeholder={t('settings.languagePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value} label={o.label} />
+                  ))}
+                </SelectContent>
+              </Select>
+            </View>
             {status ? (
               <Text
                 className={

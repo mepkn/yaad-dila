@@ -17,8 +17,7 @@
     "lastSendFailed": "Last send failed: {{error}}"
   },
   "settings": {
-    "title": "ntfy settings",
-    "cardTitle": "Your ntfy server",
+    "title": "Settings",
     "baseUrl": "Base URL",
     "topic": "Topic",
     "authentication": "Authentication",
