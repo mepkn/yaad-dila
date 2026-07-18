@@ -10,7 +10,7 @@ on:
       - '.github/workflows/backend-image.yml'
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -39,3 +39,22 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Pin the freshly built SHA tag into the deploy compose file and commit it
+      # back to main. deploy/** is not in this workflow's trigger paths, so the
+      # bump commit cannot retrigger the build.
+      - name: Bump image tag in deploy compose
+        run: |
+          TAG="${GITHUB_SHA::7}"
+          FILE="deploy/yaad-dila-prod/compose.yaml"
+          sed -i -E "s|(image: ghcr.io/${{ github.repository }}-backend:).*|\1${TAG}|" "$FILE"
+          if git diff --quiet "$FILE"; then
+            echo "compose already pinned to ${TAG}, nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          git commit -m "Pin yaad-dila-prod image to ${TAG} [skip ci]"
+          git pull --rebase origin main
+          git push origin main
