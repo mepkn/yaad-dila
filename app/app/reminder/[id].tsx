@@ -31,10 +31,7 @@ import {
   type Reminder,
   type RepeatMode,
 } from '@/lib/reminders';
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -126,14 +123,11 @@ export default function ReminderFormScreen() {
       DateTimePickerAndroid.open({
         value: startAt,
         mode: 'date',
-        onChange: (event: DateTimePickerEvent, date?: Date) => {
-          if (event.type !== 'set' || !date) return;
+        onValueChange: (_event, date) => {
           DateTimePickerAndroid.open({
             value: date,
             mode: 'time',
-            onChange: (timeEvent: DateTimePickerEvent, dateTime?: Date) => {
-              if (timeEvent.type === 'set' && dateTime) setStartAt(dateTime);
-            },
+            onValueChange: (_timeEvent, dateTime) => setStartAt(dateTime),
           });
         },
       });
@@ -234,9 +228,7 @@ export default function ReminderFormScreen() {
                     value={startAt}
                     mode="datetime"
                     display="spinner"
-                    onChange={(event: DateTimePickerEvent, date?: Date) => {
-                      if (date) setStartAt(date);
-                    }}
+                    onValueChange={(_event, date) => setStartAt(date)}
                   />
                 ) : null}
               </View>
