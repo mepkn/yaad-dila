@@ -1,7 +1,7 @@
 # Source of truth for the VPS stack `pocketbase-prod` (Dockhand).
 # Deploy: update the image tag to the commit SHA you want, copy this file to
 # /app/data/stacks/vps-cmav/pocketbase-prod/ and re-up the stack.
-# The tunnel maps pb.pknspace.com -> http://localhost:5340 (Cloudflare dashboard).
+# The tunnel maps yaad-dila.pknspace.com -> http://localhost:5340 (Cloudflare dashboard).
 services:
   pocketbase:
     # Immutable tag (commit SHA from the backend-image workflow). Never :latest.
