@@ -1,5 +1,6 @@
 {
   "common": {
+    "appName": "Yaad Dila",
     "save": "सहेजें",
     "cancel": "रद्द करें",
     "delete": "हटाएँ",
