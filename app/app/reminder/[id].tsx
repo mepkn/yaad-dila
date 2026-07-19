@@ -40,6 +40,8 @@ import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { VoiceReminderFab } from '@/components/voice-reminder-button';
+import { type ParsedReminder } from '@/lib/gemini';
 
 const UNIT_LABEL_KEYS: Record<IntervalUnit, string> = {
   minutes: 'reminder.unitMinutes',
@@ -176,6 +178,16 @@ export default function ReminderFormScreen() {
     }
   }
 
+  function onVoiceParsed(parsed: ParsedReminder) {
+    setTitle(parsed.title);
+    setMessage(parsed.message);
+    setIntervalN(String(parsed.interval_n));
+    setIntervalUnit(parsed.interval_unit);
+    setRepeatMode(parsed.repeat_mode);
+    if (parsed.repeat_count >= 1) setRepeatCount(String(parsed.repeat_count));
+    setStartAt(parsed.start_at);
+  }
+
   const canSave =
     !loading &&
     !busy &&
@@ -187,10 +199,11 @@ export default function ReminderFormScreen() {
   return (
     <>
       <Stack.Screen options={{ title: isNew ? t('reminder.newTitle') : t('reminder.editTitle') }} />
+      <View className="flex-1">
       <KeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
         bottomOffset={16}
         keyboardShouldPersistTaps="handled">
           <Card className="w-full max-w-sm">
@@ -339,6 +352,8 @@ export default function ReminderFormScreen() {
             </CardContent>
           </Card>
       </KeyboardAwareScrollView>
+      {isNew ? <VoiceReminderFab onParsed={onVoiceParsed} /> : null}
+      </View>
     </>
   );
 }

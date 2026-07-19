@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
+import { getStoredGeminiKey, setStoredGeminiKey } from '@/lib/gemini';
 import { LANGUAGE_OPTIONS, setAppLanguage } from '@/lib/i18n';
 import { type AppLanguage } from '@/lib/locale-preference';
 import { Stack } from 'expo-router';
@@ -42,12 +43,17 @@ export default function SettingsScreen() {
   const [token, setToken] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [geminiKey, setGeminiKey] = React.useState('');
+  const [geminiStatus, setGeminiStatus] = React.useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
+    getStoredGeminiKey().then((stored) => {
+      if (mounted && stored) setGeminiKey(stored);
+    });
     (async () => {
       try {
         const rec = await pb
@@ -99,6 +105,16 @@ export default function SettingsScreen() {
       setStatus({ kind: 'error', text: describeError(err) });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onSaveGeminiKey() {
+    setGeminiStatus(null);
+    try {
+      await setStoredGeminiKey(geminiKey.trim());
+      setGeminiStatus({ kind: 'ok', text: t('settings.saved') });
+    } catch (err) {
+      setGeminiStatus({ kind: 'error', text: describeError(err) });
     }
   }
 
@@ -234,6 +250,29 @@ export default function SettingsScreen() {
               onPress={onSendTest}
               disabled={busy || loading || !baseUrl || !topic}>
               <Text>{t('settings.sendTest')}</Text>
+            </Button>
+            <View className="gap-1.5">
+              <Label nativeID="gemini_key">{t('settings.geminiKey')}</Label>
+              <Input
+                aria-labelledby="gemini_key"
+                value={geminiKey}
+                onChangeText={setGeminiKey}
+                autoCapitalize="none"
+                secureTextEntry
+                placeholder="AIza…"
+              />
+              <Text className="text-xs text-muted-foreground">{t('settings.geminiKeyHint')}</Text>
+            </View>
+            {geminiStatus ? (
+              <Text
+                className={
+                  geminiStatus.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
+                }>
+                {geminiStatus.text}
+              </Text>
+            ) : null}
+            <Button variant="secondary" onPress={onSaveGeminiKey}>
+              <Text>{t('settings.saveGeminiKey')}</Text>
             </Button>
           </CardContent>
           </Card>
