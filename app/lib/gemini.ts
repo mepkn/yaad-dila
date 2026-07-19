@@ -6,7 +6,9 @@ import type { IntervalUnit, RepeatMode } from '@/lib/reminders';
 import * as SecureStore from 'expo-secure-store';
 
 const GEMINI_KEY = 'gemini_api_key';
-const MODEL = 'gemini-2.5-flash';
+// Alias that always points at Google's current flash model — concrete model
+// ids (e.g. gemini-2.5-flash) 404 once retired or gated off newer keys.
+const MODEL = 'gemini-flash-latest';
 
 export async function getStoredGeminiKey(): Promise<string | null> {
   return SecureStore.getItemAsync(GEMINI_KEY);
@@ -87,10 +89,19 @@ export async function parseReminderText(text: string, apiKey: string): Promise<P
     }
   );
   if (!res.ok) {
-    if (res.status === 400 || res.status === 401 || res.status === 403) {
+    if (res.status === 401 || res.status === 403) {
       throw new Error(i18n.t('ai.badKey'));
     }
-    throw new Error(i18n.t('ai.requestFailed', { status: res.status }));
+    let detail = '';
+    try {
+      const errBody = await res.json();
+      detail = errBody?.error?.message ?? '';
+    } catch {
+      // no JSON body
+    }
+    throw new Error(
+      i18n.t('ai.requestFailed', { status: res.status }) + (detail ? ` ${detail}` : '')
+    );
   }
   const body = await res.json();
   const raw = body?.candidates?.[0]?.content?.parts?.[0]?.text;
