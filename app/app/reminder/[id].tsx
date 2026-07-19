@@ -40,6 +40,8 @@ import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { VoiceReminderButton } from '@/components/voice-reminder-button';
+import { type ParsedReminder } from '@/lib/gemini';
 
 const UNIT_LABEL_KEYS: Record<IntervalUnit, string> = {
   minutes: 'reminder.unitMinutes',
@@ -176,6 +178,16 @@ export default function ReminderFormScreen() {
     }
   }
 
+  function onVoiceParsed(parsed: ParsedReminder) {
+    setTitle(parsed.title);
+    setMessage(parsed.message);
+    setIntervalN(String(parsed.interval_n));
+    setIntervalUnit(parsed.interval_unit);
+    setRepeatMode(parsed.repeat_mode);
+    if (parsed.repeat_count >= 1) setRepeatCount(String(parsed.repeat_count));
+    setStartAt(parsed.start_at);
+  }
+
   const canSave =
     !loading &&
     !busy &&
@@ -193,6 +205,11 @@ export default function ReminderFormScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         bottomOffset={16}
         keyboardShouldPersistTaps="handled">
+          {isNew ? (
+            <View className="w-full max-w-sm pb-4">
+              <VoiceReminderButton onParsed={onVoiceParsed} />
+            </View>
+          ) : null}
           <Card className="w-full max-w-sm">
             <CardContent className="gap-4">
               {lastError ? (

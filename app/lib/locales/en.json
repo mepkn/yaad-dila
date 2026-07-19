@@ -33,7 +33,10 @@
     "sendTest": "Send test notification",
     "testSent": "Test notification sent — check your phone.",
     "language": "Language",
-    "languagePlaceholder": "Select language"
+    "languagePlaceholder": "Select language",
+    "geminiKey": "Gemini API key (voice input)",
+    "geminiKeyHint": "Free key from Google AI Studio. Enables the voice button on the new reminder screen.",
+    "saveGeminiKey": "Save AI key"
   },
   "reminder": {
     "newTitle": "New reminder",
@@ -95,5 +98,17 @@
     "title": "Oops!",
     "body": "This screen doesn't exist.",
     "goHome": "Go to home screen!"
+  },
+  "ai": {
+    "speakReminder": "Speak a reminder",
+    "listening": "Listening…",
+    "thinking": "Understanding…",
+    "nothingHeard": "Didn't catch that — try again.",
+    "micDenied": "Microphone permission denied.",
+    "noKey": "Add your Gemini API key in Settings first.",
+    "badKey": "Gemini rejected the API key.",
+    "requestFailed": "AI request failed (HTTP {{status}}).",
+    "parseFailed": "Couldn't understand that as a reminder.",
+    "notExpressible": "That schedule isn't supported — fill the form manually."
   }
 }

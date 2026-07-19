@@ -39,7 +39,8 @@
       "expo-status-bar",
       "expo-secure-store",
       "@react-native-community/datetimepicker",
-      "expo-localization"
+      "expo-localization",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true

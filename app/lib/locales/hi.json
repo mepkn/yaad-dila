@@ -33,7 +33,10 @@
     "sendTest": "टेस्ट नोटिफ़िकेशन भेजें",
     "testSent": "टेस्ट नोटिफ़िकेशन भेजा गया — अपना फ़ोन देखें।",
     "language": "भाषा",
-    "languagePlaceholder": "भाषा चुनें"
+    "languagePlaceholder": "भाषा चुनें",
+    "geminiKey": "Gemini API कुंजी (वॉइस इनपुट)",
+    "geminiKeyHint": "Google AI Studio से मुफ़्त कुंजी। नए रिमाइंडर स्क्रीन पर वॉइस बटन सक्षम करती है।",
+    "saveGeminiKey": "AI कुंजी सहेजें"
   },
   "reminder": {
     "newTitle": "नया रिमाइंडर",
@@ -95,5 +98,17 @@
     "title": "उफ़!",
     "body": "यह स्क्रीन मौजूद नहीं है।",
     "goHome": "होम स्क्रीन पर जाएँ!"
+  },
+  "ai": {
+    "speakReminder": "रिमाइंडर बोलें",
+    "listening": "सुन रहे हैं…",
+    "thinking": "समझ रहे हैं…",
+    "nothingHeard": "सुनाई नहीं दिया — फिर से कोशिश करें।",
+    "micDenied": "माइक्रोफ़ोन की अनुमति नहीं मिली।",
+    "noKey": "पहले सेटिंग्स में अपनी Gemini API कुंजी जोड़ें।",
+    "badKey": "Gemini ने API कुंजी अस्वीकार कर दी।",
+    "requestFailed": "AI अनुरोध विफल (HTTP {{status}})।",
+    "parseFailed": "इसे रिमाइंडर के रूप में समझ नहीं सके।",
+    "notExpressible": "यह शेड्यूल समर्थित नहीं है — फ़ॉर्म हाथ से भरें।"
   }
 }
