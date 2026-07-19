@@ -109,6 +109,8 @@
     "badKey": "Gemini rejected the API key.",
     "requestFailed": "AI request failed (HTTP {{status}}).",
     "parseFailed": "Couldn't understand that as a reminder.",
-    "notExpressible": "That schedule isn't supported — fill the form manually."
+    "notExpressible": "That schedule isn't supported — fill the form manually.",
+    "speak": "Speak",
+    "stop": "Stop"
   }
 }

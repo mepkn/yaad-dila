@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { getStoredGeminiKey, parseReminderText, type ParsedReminder } from '@/lib/gemini';
@@ -8,15 +9,17 @@ import {
 import { MicIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Phase = 'idle' | 'listening' | 'parsing';
 
-export function VoiceReminderButton({
+export function VoiceReminderFab({
   onParsed,
 }: {
   onParsed: (parsed: ParsedReminder) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const [phase, setPhase] = React.useState<Phase>('idle');
   const [transcript, setTranscript] = React.useState('');
@@ -88,29 +91,40 @@ export function VoiceReminderButton({
     });
   }
 
+  const showPill = phase !== 'idle' || !!error;
+
   return (
-    <View className="items-center gap-2">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('ai.speakReminder')}
+    <View
+      pointerEvents="box-none"
+      className="absolute inset-x-0 bottom-0 items-end px-6"
+      style={{ paddingBottom: insets.bottom + 24 }}>
+      {showPill ? (
+        <View className="mb-3 w-full rounded-xl border border-border bg-card p-3 shadow-sm">
+          {error ? (
+            <Text className="text-sm text-destructive">{error}</Text>
+          ) : (
+            <Text className="text-sm text-foreground">
+              {phase === 'listening'
+                ? transcript || t('ai.listening')
+                : t('ai.thinking')}
+            </Text>
+          )}
+        </View>
+      ) : null}
+      <Button
+        size="lg"
+        variant={phase === 'listening' ? 'destructive' : 'default'}
         onPress={onPress}
-        className={`h-16 w-16 items-center justify-center rounded-full ${
-          phase === 'listening' ? 'bg-destructive' : 'bg-primary'
-        } active:opacity-80`}>
+        accessibilityLabel={t('ai.speakReminder')}>
         {phase === 'parsing' ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Icon as={MicIcon} className="size-7 text-primary-foreground" />
+          <Icon as={MicIcon} className="text-primary-foreground" />
         )}
-      </Pressable>
-      <Text className="text-xs text-muted-foreground">
-        {phase === 'listening'
-          ? transcript || t('ai.listening')
-          : phase === 'parsing'
-            ? t('ai.thinking')
-            : t('ai.speakReminder')}
-      </Text>
-      {error ? <Text className="text-center text-sm text-destructive">{error}</Text> : null}
+        <Text>
+          {phase === 'listening' ? t('ai.stop') : phase === 'parsing' ? t('ai.thinking') : t('ai.speak')}
+        </Text>
+      </Button>
     </View>
   );
 }

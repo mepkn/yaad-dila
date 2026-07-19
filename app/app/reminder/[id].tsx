@@ -40,7 +40,7 @@ import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
-import { VoiceReminderButton } from '@/components/voice-reminder-button';
+import { VoiceReminderFab } from '@/components/voice-reminder-button';
 import { type ParsedReminder } from '@/lib/gemini';
 
 const UNIT_LABEL_KEYS: Record<IntervalUnit, string> = {
@@ -199,17 +199,13 @@ export default function ReminderFormScreen() {
   return (
     <>
       <Stack.Screen options={{ title: isNew ? t('reminder.newTitle') : t('reminder.editTitle') }} />
+      <View className="flex-1">
       <KeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
         bottomOffset={16}
         keyboardShouldPersistTaps="handled">
-          {isNew ? (
-            <View className="w-full max-w-sm pb-4">
-              <VoiceReminderButton onParsed={onVoiceParsed} />
-            </View>
-          ) : null}
           <Card className="w-full max-w-sm">
             <CardContent className="gap-4">
               {lastError ? (
@@ -356,6 +352,8 @@ export default function ReminderFormScreen() {
             </CardContent>
           </Card>
       </KeyboardAwareScrollView>
+      {isNew ? <VoiceReminderFab onParsed={onVoiceParsed} /> : null}
+      </View>
     </>
   );
 }
