@@ -13,7 +13,7 @@ import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-re
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -69,7 +69,18 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: t('reminders.title'),
+          title: t('common.appName'),
+          headerTitle: () => (
+            <View className="flex-row items-center gap-2">
+              <Image
+                source={require('@/assets/images/icon.png')}
+                className="h-7 w-7 rounded-lg"
+              />
+              <Text className="text-lg font-semibold text-foreground">
+                {t('common.appName')}
+              </Text>
+            </View>
+          ),
           headerRight: () => <HeaderActions />,
         }}
       />

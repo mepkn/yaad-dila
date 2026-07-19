@@ -4,3 +4,6 @@ SPEC.md
 backend/pocketbase
 backend/pb_data
 CLAUDE.local.md
+.agents
+.claude
+skills-lock.json

@@ -64,6 +64,8 @@ function sendNtfy(config, reminder) {
   const headers = {
     Title: reminder.getString("title"),
     Priority: String(reminder.getInt("priority") || 3),
+    // Tapping the notification deep-links into the app's detail screen.
+    Click: "yaaddila://reminder/" + reminder.id,
   };
 
   const authType = config.getString("auth_type");
