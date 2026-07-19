@@ -1,0 +1,16 @@
+name: Build Android APK (production)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - app/**
+
+jobs:
+  build_android:
+    name: Build Android APK
+    type: build
+    params:
+      platform: android
+      profile: production
