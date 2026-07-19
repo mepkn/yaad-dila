@@ -7,7 +7,12 @@
     "android": "expo start -c --android",
     "ios": "expo start -c --ios",
     "web": "expo start -c --web",
-    "clean": "rm -rf .expo node_modules"
+    "clean": "rm -rf .expo node_modules",
+    "build:dev": "npx eas-cli build -p android --profile development --local --output build-dev-client.apk",
+    "build:dev:cloud": "npx eas-cli build -p android --profile development",
+    "build:prod": "npx eas-cli build -p android --profile production --local --output yaad-dila.apk",
+    "build:prod:cloud": "npx eas-cli build -p android --profile production",
+    "install:apk": "adb install -r"
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "9.1.0",
