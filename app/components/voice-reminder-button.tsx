@@ -112,18 +112,16 @@ export function VoiceReminderFab({
         </View>
       ) : null}
       <Button
-        size="lg"
+        size="icon"
+        className="h-14 w-14 rounded-full"
         variant={phase === 'listening' ? 'destructive' : 'default'}
         onPress={onPress}
         accessibilityLabel={t('ai.speakReminder')}>
         {phase === 'parsing' ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Icon as={MicIcon} className="text-primary-foreground" />
+          <Icon as={MicIcon} className="size-6 text-primary-foreground" />
         )}
-        <Text>
-          {phase === 'listening' ? t('ai.stop') : phase === 'parsing' ? t('ai.thinking') : t('ai.speak')}
-        </Text>
       </Button>
     </View>
   );

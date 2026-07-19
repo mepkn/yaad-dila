@@ -110,9 +110,11 @@ export default function HomeScreen() {
         />
         <View className="absolute right-6" style={{ bottom: insets.bottom + 24 }}>
           <Link href="/reminder/new" asChild>
-            <Button size="lg">
-              <Icon as={PlusIcon} className="text-primary-foreground" />
-              <Text>{t('reminders.newReminder')}</Text>
+            <Button
+              size="icon"
+              className="h-14 w-14 rounded-full"
+              accessibilityLabel={t('reminders.newReminder')}>
+              <Icon as={PlusIcon} className="size-6 text-primary-foreground" />
             </Button>
           </Link>
         </View>
