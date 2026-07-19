@@ -6,3 +6,5 @@ COPY pb_hooks /pb_hooks
 COPY pb_migrations /pb_migrations
 
 EXPOSE 8090
+
+# CI/branch-protection pipeline test 2026-07-19
