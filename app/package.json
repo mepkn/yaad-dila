@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "expo start -c",
+    "dev:usb": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8090 tcp:8090 && expo start -c --localhost",
     "android": "expo start -c --android",
     "ios": "expo start -c --ios",
     "web": "expo start -c --web",
