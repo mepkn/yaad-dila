@@ -89,19 +89,10 @@ export async function parseReminderText(text: string, apiKey: string): Promise<P
     }
   );
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 400 || res.status === 401 || res.status === 403) {
       throw new Error(i18n.t('ai.badKey'));
     }
-    let detail = '';
-    try {
-      const errBody = await res.json();
-      detail = errBody?.error?.message ?? '';
-    } catch {
-      // no JSON body
-    }
-    throw new Error(
-      i18n.t('ai.requestFailed', { status: res.status }) + (detail ? ` ${detail}` : '')
-    );
+    throw new Error(i18n.t('ai.requestFailed', { status: res.status }));
   }
   const body = await res.json();
   const raw = body?.candidates?.[0]?.content?.parts?.[0]?.text;
