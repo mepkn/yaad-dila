@@ -7,7 +7,7 @@ import { getStoredTheme } from '@/lib/theme-preference';
 import { authReady, pb } from '@/lib/pb';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
@@ -25,8 +25,6 @@ export {
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
-  const router = useRouter();
-  const segments = useSegments();
   const [ready, setReady] = React.useState(false);
   const [loggedIn, setLoggedIn] = React.useState(false);
 
@@ -52,23 +50,20 @@ export default function RootLayout() {
     };
   }, []);
 
-  React.useEffect(() => {
-    if (!ready) return;
-    const inAuthGroup = segments[0] === '(auth)';
-    if (!loggedIn && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (loggedIn && inAuthGroup) {
-      router.replace('/');
-    }
-  }, [ready, loggedIn, segments, router]);
-
   return (
     <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
     <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       {ready ? (
         <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Protected guard={loggedIn}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="reminder/[id]" />
+          </Stack.Protected>
+          <Stack.Protected guard={!loggedIn}>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          </Stack.Protected>
         </Stack>
       ) : null}
       <PortalHost />
