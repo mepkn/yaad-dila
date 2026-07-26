@@ -1,9 +1,11 @@
-CLAUDE.md
-PHASES.md
-SPEC.md
-backend/pocketbase
-backend/pb_data
-CLAUDE.local.md
 .agents
 .claude
+AGENTS.md
+AGENTS.override.md
+CLAUDE.md
+CLAUDE.local.md
+PHASES.md
+SPEC.md
 skills-lock.json
+backend/pb_data
+backend/pocketbase
