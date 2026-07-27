@@ -1,11 +1,15 @@
+.zed
 .agents
 .claude
+.codex
+.gemini
 AGENTS.md
 AGENTS.override.md
 CLAUDE.md
 CLAUDE.local.md
 PHASES.md
 SPEC.md
+.mcp.json
 skills-lock.json
 backend/pb_data
 backend/pocketbase
