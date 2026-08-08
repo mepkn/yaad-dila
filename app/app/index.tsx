@@ -1,9 +1,10 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Icon } from '@/components/ui/icon';
-import { Switch } from '@/components/ui/switch';
-import { Text } from '@/components/ui/text';
+import { CmpBadge } from '@/components/cmp/cmp-badge';
+import { CmpButton } from '@/components/cmp/cmp-button';
+import { CmpCard, CmpCardContent, CmpCardHeader, CmpCardTitle } from '@/components/cmp/cmp-card';
+import { CmpFlatList } from '@/components/cmp/cmp-flat-list';
+import { CmpIcon } from '@/components/cmp/cmp-icon';
+import { CmpSwitch } from '@/components/cmp/cmp-switch';
+import { CmpText } from '@/components/cmp/cmp-text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { formatLocal, isFinished, type Reminder } from '@/lib/reminders';
@@ -13,7 +14,7 @@ import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-re
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
+import { Image, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -26,9 +27,7 @@ export default function HomeScreen() {
 
   const load = React.useCallback(async () => {
     try {
-      const records = await pb
-        .collection('reminders')
-        .getFullList<Reminder>({ sort: 'next_fire' });
+      const records = await pb.collection('reminders').getFullList<Reminder>({ sort: 'next_fire' });
       setReminders(records);
       setError(null);
     } catch (err) {
@@ -72,23 +71,18 @@ export default function HomeScreen() {
           title: t('common.appName'),
           headerTitle: () => (
             <View className="flex-row items-center gap-2">
-              <Image
-                source={require('@/assets/images/icon.png')}
-                className="h-7 w-7 rounded-lg"
-              />
-              <Text className="text-lg font-semibold text-foreground">
+              <Image source={require('@/assets/images/icon.png')} className="h-7 w-7 rounded-lg" />
+              <CmpText className="text-lg font-semibold text-foreground">
                 {t('common.appName')}
-              </Text>
+              </CmpText>
             </View>
           ),
           headerRight: () => <HeaderActions />,
         }}
       />
       <View className="flex-1 bg-background">
-        {error ? (
-          <Text className="p-4 text-sm text-destructive">{error}</Text>
-        ) : null}
-        <FlatList
+        {error ? <CmpText className="p-4 text-sm text-destructive">{error}</CmpText> : null}
+        <CmpFlatList
           data={reminders}
           keyExtractor={(r) => r.id}
           contentContainerClassName="gap-3 p-4"
@@ -97,10 +91,10 @@ export default function HomeScreen() {
           ListEmptyComponent={
             loading ? null : (
               <View className="items-center gap-4 pt-24">
-                <Text className="text-lg font-semibold">{t('reminders.emptyTitle')}</Text>
-                <Text className="text-center text-sm text-muted-foreground">
+                <CmpText className="text-lg font-semibold">{t('reminders.emptyTitle')}</CmpText>
+                <CmpText className="text-center text-sm text-muted-foreground">
                   {t('reminders.emptyBody')}
-                </Text>
+                </CmpText>
               </View>
             )
           }
@@ -110,12 +104,12 @@ export default function HomeScreen() {
         />
         <View className="absolute right-6" style={{ bottom: insets.bottom + 24 }}>
           <Link href="/reminder/new" asChild>
-            <Button
+            <CmpButton
               size="icon"
               className="h-14 w-14 rounded-full"
               accessibilityLabel={t('reminders.newReminder')}>
-              <Icon as={PlusIcon} className="size-6 text-primary-foreground" />
-            </Button>
+              <CmpIcon as={PlusIcon} className="size-6 text-primary-foreground" />
+            </CmpButton>
           </Link>
         </View>
       </View>
@@ -135,37 +129,37 @@ function ReminderCard({
   const finished = isFinished(reminder);
   return (
     <Pressable onPress={() => router.push(`/reminder/${reminder.id}`)}>
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3">
-          <CardTitle className="flex-1" numberOfLines={1}>
+      <CmpCard>
+        <CmpCardHeader className="flex-row items-center justify-between gap-3">
+          <CmpCardTitle className="flex-1" numberOfLines={1}>
             {reminder.title}
-          </CardTitle>
+          </CmpCardTitle>
           {finished ? (
-            <Badge variant="secondary">
-              <Text>{t('reminders.finished')}</Text>
-            </Badge>
+            <CmpBadge variant="secondary">
+              <CmpText>{t('reminders.finished')}</CmpText>
+            </CmpBadge>
           ) : (
-            <Switch
+            <CmpSwitch
               checked={reminder.active}
               onCheckedChange={(checked) => onToggleActive(reminder, checked)}
             />
           )}
-        </CardHeader>
-        <CardContent className="gap-1">
-          <Text className="text-sm text-muted-foreground">
+        </CmpCardHeader>
+        <CmpCardContent className="gap-1">
+          <CmpText className="text-sm text-muted-foreground">
             {finished
               ? t('reminders.doneFired', { count: reminder.fired_count })
               : reminder.active
                 ? t('reminders.next', { date: formatLocal(reminder.next_fire) })
                 : t('reminders.paused')}
-          </Text>
+          </CmpText>
           {reminder.last_error ? (
-            <Text className="text-sm text-destructive" numberOfLines={2}>
+            <CmpText className="text-sm text-destructive" numberOfLines={2}>
               {t('reminders.lastSendFailed', { error: reminder.last_error })}
-            </Text>
+            </CmpText>
           ) : null}
-        </CardContent>
-      </Card>
+        </CmpCardContent>
+      </CmpCard>
     </Pressable>
   );
 }
@@ -174,7 +168,7 @@ function HeaderActions() {
   const { colorScheme, setColorScheme } = useColorScheme();
   return (
     <View className="flex-row">
-      <Button
+      <CmpButton
         variant="ghost"
         size="icon"
         onPress={() => {
@@ -182,21 +176,21 @@ function HeaderActions() {
           setColorScheme(next);
           setStoredTheme(next);
         }}>
-        <Icon as={colorScheme === 'dark' ? SunIcon : MoonIcon} className="size-5" />
-      </Button>
+        <CmpIcon as={colorScheme === 'dark' ? SunIcon : MoonIcon} className="size-5" />
+      </CmpButton>
       <Link href="/settings" asChild>
-        <Button variant="ghost" size="icon">
-          <Icon as={SettingsIcon} className="size-5" />
-        </Button>
+        <CmpButton variant="ghost" size="icon">
+          <CmpIcon as={SettingsIcon} className="size-5" />
+        </CmpButton>
       </Link>
-      <Button
+      <CmpButton
         variant="ghost"
         size="icon"
         onPress={() => {
           pb.authStore.clear();
         }}>
-        <Icon as={LogOutIcon} className="size-5" />
-      </Button>
+        <CmpIcon as={LogOutIcon} className="size-5" />
+      </CmpButton>
     </View>
   );
 }

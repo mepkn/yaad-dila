@@ -1,11 +1,8 @@
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
-import { Text } from '@/components/ui/text';
+import { CmpButton } from '@/components/cmp/cmp-button';
+import { CmpIcon } from '@/components/cmp/cmp-icon';
+import { CmpText } from '@/components/cmp/cmp-text';
 import { getStoredGeminiKey, parseReminderText, type ParsedReminder } from '@/lib/gemini';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { MicIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,11 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Phase = 'idle' | 'listening' | 'parsing';
 
-export function VoiceReminderFab({
-  onParsed,
-}: {
-  onParsed: (parsed: ParsedReminder) => void;
-}) {
+export function VoiceReminderFab({ onParsed }: { onParsed: (parsed: ParsedReminder) => void }) {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const [phase, setPhase] = React.useState<Phase>('idle');
@@ -101,17 +94,15 @@ export function VoiceReminderFab({
       {showPill ? (
         <View className="mb-3 w-full rounded-xl border border-border bg-card p-3 shadow-sm">
           {error ? (
-            <Text className="text-sm text-destructive">{error}</Text>
+            <CmpText className="text-sm text-destructive">{error}</CmpText>
           ) : (
-            <Text className="text-sm text-foreground">
-              {phase === 'listening'
-                ? transcript || t('ai.listening')
-                : t('ai.thinking')}
-            </Text>
+            <CmpText className="text-sm text-foreground">
+              {phase === 'listening' ? transcript || t('ai.listening') : t('ai.thinking')}
+            </CmpText>
           )}
         </View>
       ) : null}
-      <Button
+      <CmpButton
         size="icon"
         className="h-14 w-14 rounded-full"
         variant={phase === 'listening' ? 'destructive' : 'default'}
@@ -120,9 +111,9 @@ export function VoiceReminderFab({
         {phase === 'parsing' ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Icon as={MicIcon} className="size-6 text-primary-foreground" />
+          <CmpIcon as={MicIcon} className="size-6 text-primary-foreground" />
         )}
-      </Button>
+      </CmpButton>
     </View>
   );
 }

@@ -72,6 +72,14 @@ deploy/yaad-dila-prod/   production compose stack (image tag bumped by CI)
 
 ## Development
 
+### Client component layers
+
+React Native Reusables primitives live in `app/components/ui/` as the base component
+layer. Screens and app-owned components do not import that layer directly; each adopted
+primitive is exposed through a real `Cmp*` wrapper in
+`app/components/cmp/cmp-*.tsx`. Add a new RNR primitive to `ui/` first, then create its
+`cmp/` wrapper before using it in application code.
+
 ### Prerequisites
 
 - Node.js and an Android device with the app's development client installed

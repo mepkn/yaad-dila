@@ -1,15 +1,16 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { CmpButton } from '@/components/cmp/cmp-button';
+import { CmpCard, CmpCardContent } from '@/components/cmp/cmp-card';
+import { CmpInput } from '@/components/cmp/cmp-input';
+import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
+import { CmpLabel } from '@/components/cmp/cmp-label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Text } from '@/components/ui/text';
+  CmpSelect,
+  CmpSelectContent,
+  CmpSelectItem,
+  CmpSelectTrigger,
+  CmpSelectValue,
+} from '@/components/cmp/cmp-select';
+import { CmpText } from '@/components/cmp/cmp-text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
@@ -21,8 +22,6 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 const AUTH_VALUES: NtfyAuthType[] = ['none', 'token', 'basic'];
 
@@ -44,7 +43,10 @@ export default function SettingsScreen() {
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [geminiKey, setGeminiKey] = React.useState('');
-  const [geminiStatus, setGeminiStatus] = React.useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [geminiStatus, setGeminiStatus] = React.useState<{
+    kind: 'ok' | 'error';
+    text: string;
+  } | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
@@ -134,17 +136,16 @@ export default function SettingsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: t('settings.title') }} />
-      <KeyboardAwareScrollView
+      <CmpKeyboardAwareScrollView
         className="flex-1 bg-background"
         contentContainerClassName="items-center p-4"
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-        bottomOffset={16}
-        keyboardShouldPersistTaps="handled">
-        <Card className="w-full max-w-sm">
-          <CardContent className="gap-4">
+        bottomOffset={16}>
+        <CmpCard className="w-full max-w-sm">
+          <CmpCardContent className="gap-4">
             <View className="gap-1.5">
-              <Label nativeID="base_url">{t('settings.baseUrl')}</Label>
-              <Input
+              <CmpLabel nativeID="base_url">{t('settings.baseUrl')}</CmpLabel>
+              <CmpInput
                 aria-labelledby="base_url"
                 value={baseUrl}
                 onChangeText={setBaseUrl}
@@ -155,8 +156,8 @@ export default function SettingsScreen() {
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="topic">{t('settings.topic')}</Label>
-              <Input
+              <CmpLabel nativeID="topic">{t('settings.topic')}</CmpLabel>
+              <CmpInput
                 aria-labelledby="topic"
                 value={topic}
                 onChangeText={setTopic}
@@ -166,26 +167,26 @@ export default function SettingsScreen() {
               />
             </View>
             <View className="gap-1.5">
-              <Label nativeID="auth_type">{t('settings.authentication')}</Label>
-              <Select
+              <CmpLabel nativeID="auth_type">{t('settings.authentication')}</CmpLabel>
+              <CmpSelect
                 value={authOptions.find((o) => o.value === authType)}
                 onValueChange={(option) => {
                   if (option) setAuthType(option.value as NtfyAuthType);
                 }}>
-                <SelectTrigger aria-labelledby="auth_type">
-                  <SelectValue placeholder={t('settings.authPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
+                <CmpSelectTrigger aria-labelledby="auth_type">
+                  <CmpSelectValue placeholder={t('settings.authPlaceholder')} />
+                </CmpSelectTrigger>
+                <CmpSelectContent>
                   {authOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value} label={o.label} />
+                    <CmpSelectItem key={o.value} value={o.value} label={o.label} />
                   ))}
-                </SelectContent>
-              </Select>
+                </CmpSelectContent>
+              </CmpSelect>
             </View>
             {authType === 'token' ? (
               <View className="gap-1.5">
-                <Label nativeID="token">{t('settings.accessToken')}</Label>
-                <Input
+                <CmpLabel nativeID="token">{t('settings.accessToken')}</CmpLabel>
+                <CmpInput
                   aria-labelledby="token"
                   value={token}
                   onChangeText={setToken}
@@ -198,8 +199,8 @@ export default function SettingsScreen() {
             {authType === 'basic' ? (
               <>
                 <View className="gap-1.5">
-                  <Label nativeID="username">{t('settings.username')}</Label>
-                  <Input
+                  <CmpLabel nativeID="username">{t('settings.username')}</CmpLabel>
+                  <CmpInput
                     aria-labelledby="username"
                     value={username}
                     onChangeText={setUsername}
@@ -207,8 +208,8 @@ export default function SettingsScreen() {
                   />
                 </View>
                 <View className="gap-1.5">
-                  <Label nativeID="password">{t('settings.password')}</Label>
-                  <Input
+                  <CmpLabel nativeID="password">{t('settings.password')}</CmpLabel>
+                  <CmpInput
                     aria-labelledby="password"
                     value={password}
                     onChangeText={setPassword}
@@ -218,42 +219,42 @@ export default function SettingsScreen() {
               </>
             ) : null}
             <View className="gap-1.5">
-              <Label nativeID="language">{t('settings.language')}</Label>
-              <Select
+              <CmpLabel nativeID="language">{t('settings.language')}</CmpLabel>
+              <CmpSelect
                 value={LANGUAGE_OPTIONS.find((o) => o.value === i18n.language)}
                 onValueChange={(option) => {
                   if (option) setAppLanguage(option.value as AppLanguage);
                 }}>
-                <SelectTrigger aria-labelledby="language">
-                  <SelectValue placeholder={t('settings.languagePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
+                <CmpSelectTrigger aria-labelledby="language">
+                  <CmpSelectValue placeholder={t('settings.languagePlaceholder')} />
+                </CmpSelectTrigger>
+                <CmpSelectContent>
                   {LANGUAGE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value} label={o.label} />
+                    <CmpSelectItem key={o.value} value={o.value} label={o.label} />
                   ))}
-                </SelectContent>
-              </Select>
+                </CmpSelectContent>
+              </CmpSelect>
             </View>
             {status ? (
-              <Text
+              <CmpText
                 className={
                   status.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
                 }>
                 {status.text}
-              </Text>
+              </CmpText>
             ) : null}
-            <Button onPress={onSave} disabled={busy || loading || !baseUrl || !topic}>
-              <Text>{busy ? t('common.working') : t('common.save')}</Text>
-            </Button>
-            <Button
+            <CmpButton onPress={onSave} disabled={busy || loading || !baseUrl || !topic}>
+              <CmpText>{busy ? t('common.working') : t('common.save')}</CmpText>
+            </CmpButton>
+            <CmpButton
               variant="secondary"
               onPress={onSendTest}
               disabled={busy || loading || !baseUrl || !topic}>
-              <Text>{t('settings.sendTest')}</Text>
-            </Button>
+              <CmpText>{t('settings.sendTest')}</CmpText>
+            </CmpButton>
             <View className="gap-1.5">
-              <Label nativeID="gemini_key">{t('settings.geminiKey')}</Label>
-              <Input
+              <CmpLabel nativeID="gemini_key">{t('settings.geminiKey')}</CmpLabel>
+              <CmpInput
                 aria-labelledby="gemini_key"
                 value={geminiKey}
                 onChangeText={setGeminiKey}
@@ -261,22 +262,24 @@ export default function SettingsScreen() {
                 secureTextEntry
                 placeholder="AIza…"
               />
-              <Text className="text-xs text-muted-foreground">{t('settings.geminiKeyHint')}</Text>
+              <CmpText className="text-xs text-muted-foreground">
+                {t('settings.geminiKeyHint')}
+              </CmpText>
             </View>
             {geminiStatus ? (
-              <Text
+              <CmpText
                 className={
                   geminiStatus.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
                 }>
                 {geminiStatus.text}
-              </Text>
+              </CmpText>
             ) : null}
-            <Button variant="secondary" onPress={onSaveGeminiKey}>
-              <Text>{t('settings.saveGeminiKey')}</Text>
-            </Button>
-          </CardContent>
-          </Card>
-      </KeyboardAwareScrollView>
+            <CmpButton variant="secondary" onPress={onSaveGeminiKey}>
+              <CmpText>{t('settings.saveGeminiKey')}</CmpText>
+            </CmpButton>
+          </CmpCardContent>
+        </CmpCard>
+      </CmpKeyboardAwareScrollView>
     </>
   );
 }
