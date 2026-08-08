@@ -1,8 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Text } from '@/components/ui/text';
+import { CmpButton } from '@/components/cmp/cmp-button';
+import { CmpCard, CmpCardContent, CmpCardHeader, CmpCardTitle } from '@/components/cmp/cmp-card';
+import { CmpInput } from '@/components/cmp/cmp-input';
+import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
+import { CmpLabel } from '@/components/cmp/cmp-label';
+import { CmpText } from '@/components/cmp/cmp-text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { Link } from 'expo-router';
@@ -11,8 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -36,20 +35,19 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAwareScrollView
+    <CmpKeyboardAwareScrollView
       className="flex-1 bg-background"
       contentContainerClassName="flex-grow items-center justify-center p-4"
       contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-      bottomOffset={16}
-      keyboardShouldPersistTaps="handled">
-        <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{t('auth.login')}</CardTitle>
-        </CardHeader>
-        <CardContent className="gap-4">
+      bottomOffset={16}>
+      <CmpCard className="w-full max-w-sm">
+        <CmpCardHeader>
+          <CmpCardTitle>{t('auth.login')}</CmpCardTitle>
+        </CmpCardHeader>
+        <CmpCardContent className="gap-4">
           <View className="gap-1.5">
-            <Label nativeID="email">{t('auth.email')}</Label>
-            <Input
+            <CmpLabel nativeID="email">{t('auth.email')}</CmpLabel>
+            <CmpInput
               aria-labelledby="email"
               value={email}
               onChangeText={setEmail}
@@ -60,8 +58,8 @@ export default function LoginScreen() {
             />
           </View>
           <View className="gap-1.5">
-            <Label nativeID="password">{t('auth.password')}</Label>
-            <Input
+            <CmpLabel nativeID="password">{t('auth.password')}</CmpLabel>
+            <CmpInput
               aria-labelledby="password"
               value={password}
               onChangeText={setPassword}
@@ -69,17 +67,17 @@ export default function LoginScreen() {
               placeholder="••••••••"
             />
           </View>
-          {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
-          <Button onPress={onLogin} disabled={busy || !email || !password}>
-            <Text>{busy ? t('auth.loggingIn') : t('auth.login')}</Text>
-          </Button>
+          {error ? <CmpText className="text-sm text-destructive">{error}</CmpText> : null}
+          <CmpButton onPress={onLogin} disabled={busy || !email || !password}>
+            <CmpText>{busy ? t('auth.loggingIn') : t('auth.login')}</CmpText>
+          </CmpButton>
           <Link href="/(auth)/signup" asChild>
-            <Button variant="ghost">
-              <Text>{t('auth.noAccount')}</Text>
-            </Button>
+            <CmpButton variant="ghost">
+              <CmpText>{t('auth.noAccount')}</CmpText>
+            </CmpButton>
           </Link>
-        </CardContent>
-        </Card>
-    </KeyboardAwareScrollView>
+        </CmpCardContent>
+      </CmpCard>
+    </CmpKeyboardAwareScrollView>
   );
 }

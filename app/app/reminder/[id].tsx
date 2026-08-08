@@ -1,27 +1,28 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  CmpAlertDialog,
+  CmpAlertDialogAction,
+  CmpAlertDialogCancel,
+  CmpAlertDialogContent,
+  CmpAlertDialogDescription,
+  CmpAlertDialogFooter,
+  CmpAlertDialogHeader,
+  CmpAlertDialogTitle,
+  CmpAlertDialogTrigger,
+} from '@/components/cmp/cmp-alert-dialog';
+import { CmpButton } from '@/components/cmp/cmp-button';
+import { CmpCard, CmpCardContent } from '@/components/cmp/cmp-card';
+import { CmpInput } from '@/components/cmp/cmp-input';
+import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
+import { CmpLabel } from '@/components/cmp/cmp-label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Text } from '@/components/ui/text';
-import { Textarea } from '@/components/ui/textarea';
+  CmpSelect,
+  CmpSelectContent,
+  CmpSelectItem,
+  CmpSelectTrigger,
+  CmpSelectValue,
+} from '@/components/cmp/cmp-select';
+import { CmpText } from '@/components/cmp/cmp-text';
+import { CmpTextarea } from '@/components/cmp/cmp-textarea';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import {
@@ -39,7 +40,6 @@ import { Platform, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { VoiceReminderFab } from '@/components/voice-reminder-button';
 import { type ParsedReminder } from '@/lib/gemini';
 
@@ -200,20 +200,21 @@ export default function ReminderFormScreen() {
     <>
       <Stack.Screen options={{ title: isNew ? t('reminder.newTitle') : t('reminder.editTitle') }} />
       <View className="flex-1">
-      <KeyboardAwareScrollView
-        className="flex-1 bg-background"
-        contentContainerClassName="items-center p-4"
-        contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
-        bottomOffset={16}
-        keyboardShouldPersistTaps="handled">
-          <Card className="w-full max-w-sm">
-            <CardContent className="gap-4">
+        <CmpKeyboardAwareScrollView
+          className="flex-1 bg-background"
+          contentContainerClassName="items-center p-4"
+          contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
+          bottomOffset={16}>
+          <CmpCard className="w-full max-w-sm">
+            <CmpCardContent className="gap-4">
               {lastError ? (
-                <Text className="text-sm text-destructive">{t('reminder.lastSendFailed', { error: lastError })}</Text>
+                <CmpText className="text-sm text-destructive">
+                  {t('reminder.lastSendFailed', { error: lastError })}
+                </CmpText>
               ) : null}
               <View className="gap-1.5">
-                <Label nativeID="title">{t('reminder.titleLabel')}</Label>
-                <Input
+                <CmpLabel nativeID="title">{t('reminder.titleLabel')}</CmpLabel>
+                <CmpInput
                   aria-labelledby="title"
                   value={title}
                   onChangeText={setTitle}
@@ -222,8 +223,8 @@ export default function ReminderFormScreen() {
                 />
               </View>
               <View className="gap-1.5">
-                <Label nativeID="message">{t('reminder.messageLabel')}</Label>
-                <Textarea
+                <CmpLabel nativeID="message">{t('reminder.messageLabel')}</CmpLabel>
+                <CmpTextarea
                   aria-labelledby="message"
                   value={message}
                   onChangeText={setMessage}
@@ -232,10 +233,10 @@ export default function ReminderFormScreen() {
                 />
               </View>
               <View className="gap-1.5">
-                <Label>{t('reminder.starts')}</Label>
-                <Button variant="outline" onPress={onPickStartAt} disabled={loading}>
-                  <Text>{formatLocal(startAt.toISOString())}</Text>
-                </Button>
+                <CmpLabel>{t('reminder.starts')}</CmpLabel>
+                <CmpButton variant="outline" onPress={onPickStartAt} disabled={loading}>
+                  <CmpText>{formatLocal(startAt.toISOString())}</CmpText>
+                </CmpButton>
                 {showIosPicker && Platform.OS === 'ios' ? (
                   <DateTimePicker
                     value={startAt}
@@ -247,8 +248,8 @@ export default function ReminderFormScreen() {
               </View>
               <View className="flex-row gap-3">
                 <View className="flex-1 gap-1.5">
-                  <Label nativeID="interval_n">{t('reminder.every')}</Label>
-                  <Input
+                  <CmpLabel nativeID="interval_n">{t('reminder.every')}</CmpLabel>
+                  <CmpInput
                     aria-labelledby="interval_n"
                     value={intervalN}
                     onChangeText={setIntervalN}
@@ -257,44 +258,44 @@ export default function ReminderFormScreen() {
                   />
                 </View>
                 <View className="flex-[2] gap-1.5">
-                  <Label nativeID="interval_unit">{t('reminder.unit')}</Label>
-                  <Select
+                  <CmpLabel nativeID="interval_unit">{t('reminder.unit')}</CmpLabel>
+                  <CmpSelect
                     value={unitOptions.find((o) => o.value === intervalUnit)}
                     onValueChange={(option) => {
                       if (option) setIntervalUnit(option.value as IntervalUnit);
                     }}>
-                    <SelectTrigger aria-labelledby="interval_unit">
-                      <SelectValue placeholder={t('reminder.unit')} />
-                    </SelectTrigger>
-                    <SelectContent>
+                    <CmpSelectTrigger aria-labelledby="interval_unit">
+                      <CmpSelectValue placeholder={t('reminder.unit')} />
+                    </CmpSelectTrigger>
+                    <CmpSelectContent>
                       {unitOptions.map((o) => (
-                        <SelectItem key={o.value} value={o.value} label={o.label} />
+                        <CmpSelectItem key={o.value} value={o.value} label={o.label} />
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </CmpSelectContent>
+                  </CmpSelect>
                 </View>
               </View>
               <View className="gap-1.5">
-                <Label nativeID="repeat_mode">{t('reminder.repeat')}</Label>
-                <Select
+                <CmpLabel nativeID="repeat_mode">{t('reminder.repeat')}</CmpLabel>
+                <CmpSelect
                   value={repeatOptions.find((o) => o.value === repeatMode)}
                   onValueChange={(option) => {
                     if (option) setRepeatMode(option.value as RepeatMode);
                   }}>
-                  <SelectTrigger aria-labelledby="repeat_mode">
-                    <SelectValue placeholder={t('reminder.repeat')} />
-                  </SelectTrigger>
-                  <SelectContent>
+                  <CmpSelectTrigger aria-labelledby="repeat_mode">
+                    <CmpSelectValue placeholder={t('reminder.repeat')} />
+                  </CmpSelectTrigger>
+                  <CmpSelectContent>
                     {repeatOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value} label={o.label} />
+                      <CmpSelectItem key={o.value} value={o.value} label={o.label} />
                     ))}
-                  </SelectContent>
-                </Select>
+                  </CmpSelectContent>
+                </CmpSelect>
               </View>
               {repeatMode === 'count' ? (
                 <View className="gap-1.5">
-                  <Label nativeID="repeat_count">{t('reminder.totalFires')}</Label>
-                  <Input
+                  <CmpLabel nativeID="repeat_count">{t('reminder.totalFires')}</CmpLabel>
+                  <CmpInput
                     aria-labelledby="repeat_count"
                     value={repeatCount}
                     onChangeText={setRepeatCount}
@@ -304,55 +305,57 @@ export default function ReminderFormScreen() {
                 </View>
               ) : null}
               <View className="gap-1.5">
-                <Label nativeID="priority">{t('reminder.priority')}</Label>
-                <Select
+                <CmpLabel nativeID="priority">{t('reminder.priority')}</CmpLabel>
+                <CmpSelect
                   value={priorityOptions.find((o) => o.value === priority)}
                   onValueChange={(option) => {
                     if (option) setPriority(option.value);
                   }}>
-                  <SelectTrigger aria-labelledby="priority">
-                    <SelectValue placeholder={t('reminder.priority')} />
-                  </SelectTrigger>
-                  <SelectContent>
+                  <CmpSelectTrigger aria-labelledby="priority">
+                    <CmpSelectValue placeholder={t('reminder.priority')} />
+                  </CmpSelectTrigger>
+                  <CmpSelectContent>
                     {priorityOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value} label={o.label} />
+                      <CmpSelectItem key={o.value} value={o.value} label={o.label} />
                     ))}
-                  </SelectContent>
-                </Select>
+                  </CmpSelectContent>
+                </CmpSelect>
               </View>
-              {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
-              <Button onPress={onSave} disabled={!canSave}>
-                <Text>{busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}</Text>
-              </Button>
+              {error ? <CmpText className="text-sm text-destructive">{error}</CmpText> : null}
+              <CmpButton onPress={onSave} disabled={!canSave}>
+                <CmpText>
+                  {busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}
+                </CmpText>
+              </CmpButton>
               {!isNew ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={busy || loading}>
-                      <Text>{t('common.delete')}</Text>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t('reminder.deleteTitle')}</AlertDialogTitle>
-                      <AlertDialogDescription>
+                <CmpAlertDialog>
+                  <CmpAlertDialogTrigger asChild>
+                    <CmpButton variant="destructive" disabled={busy || loading}>
+                      <CmpText>{t('common.delete')}</CmpText>
+                    </CmpButton>
+                  </CmpAlertDialogTrigger>
+                  <CmpAlertDialogContent>
+                    <CmpAlertDialogHeader>
+                      <CmpAlertDialogTitle>{t('reminder.deleteTitle')}</CmpAlertDialogTitle>
+                      <CmpAlertDialogDescription>
                         {t('reminder.deleteBody', { title })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>
-                        <Text>{t('common.cancel')}</Text>
-                      </AlertDialogCancel>
-                      <AlertDialogAction onPress={onDelete}>
-                        <Text>{t('common.delete')}</Text>
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                      </CmpAlertDialogDescription>
+                    </CmpAlertDialogHeader>
+                    <CmpAlertDialogFooter>
+                      <CmpAlertDialogCancel>
+                        <CmpText>{t('common.cancel')}</CmpText>
+                      </CmpAlertDialogCancel>
+                      <CmpAlertDialogAction onPress={onDelete}>
+                        <CmpText>{t('common.delete')}</CmpText>
+                      </CmpAlertDialogAction>
+                    </CmpAlertDialogFooter>
+                  </CmpAlertDialogContent>
+                </CmpAlertDialog>
               ) : null}
-            </CardContent>
-          </Card>
-      </KeyboardAwareScrollView>
-      {isNew ? <VoiceReminderFab onParsed={onVoiceParsed} /> : null}
+            </CmpCardContent>
+          </CmpCard>
+        </CmpKeyboardAwareScrollView>
+        {isNew ? <VoiceReminderFab onParsed={onVoiceParsed} /> : null}
       </View>
     </>
   );
