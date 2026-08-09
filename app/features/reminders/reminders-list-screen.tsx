@@ -4,9 +4,10 @@ import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { ReminderCard } from '@/features/reminders/reminder-card';
 import { SearchBar } from '@/features/reminders/search-bar';
+import { StatusFilter } from '@/features/reminders/status-filter';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
-import { type Reminder } from '@/lib/reminders';
+import { parseUTC, statusOf, type Reminder, type ReminderStatus } from '@/lib/reminders';
 import { matchesSearch, parseSearchQuery } from '@/lib/search';
 import { Link, Stack, useFocusEffect } from 'expo-router';
 import { setStoredTheme } from '@/lib/theme-preference';
@@ -17,6 +18,28 @@ import { useTranslation } from 'react-i18next';
 import { Image, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const BUCKET_ORDER = { upcoming: 0, paused: 1, past: 2 } as const;
+
+// The API sorts by `next_fire` ascending, but the backend never clears
+// `next_fire` when a reminder finishes — it only flips `active` — so finished
+// reminders keep a stale past timestamp and would otherwise sort to the very
+// top. Re-order here: soonest-first for anything still scheduled, and
+// most-recently-fired-first for what is done.
+function sortForDisplay(reminders: Reminder[], status: ReminderStatus): Reminder[] {
+  const filtered = status === 'all' ? reminders : reminders.filter((r) => statusOf(r) === status);
+
+  return [...filtered].sort((a, b) => {
+    const bucketA = statusOf(a);
+    const bucketB = statusOf(b);
+    if (bucketA !== bucketB) return BUCKET_ORDER[bucketA] - BUCKET_ORDER[bucketB];
+
+    const timeA = parseUTC(a.next_fire).getTime();
+    const timeB = parseUTC(b.next_fire).getTime();
+    if (isNaN(timeA) || isNaN(timeB)) return 0;
+    return bucketA === 'past' ? timeB - timeA : timeA - timeB;
+  });
+}
+
 export function RemindersListScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
@@ -25,13 +48,17 @@ export function RemindersListScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [query, setQuery] = React.useState('');
+  // Filter state is deliberately not persisted: every visit to home starts at
+  // "all", so a reminder can never be missing because of a forgotten filter.
+  const [status, setStatus] = React.useState<ReminderStatus>('all');
 
   // `reminders` stays the unfiltered source of truth so the optimistic toggle
-  // and reload keep working regardless of what is being searched.
+  // and reload keep working regardless of what is being filtered or searched.
   const parsedQuery = React.useMemo(() => parseSearchQuery(query), [query]);
+  const byStatus = React.useMemo(() => sortForDisplay(reminders, status), [reminders, status]);
   const visibleReminders = React.useMemo(
-    () => reminders.filter((reminder) => matchesSearch(reminder, parsedQuery)),
-    [reminders, parsedQuery]
+    () => byStatus.filter((reminder) => matchesSearch(reminder, parsedQuery)),
+    [byStatus, parsedQuery]
   );
   const searching = parsedQuery.tags.length > 0 || parsedQuery.text.length > 0;
 
@@ -94,7 +121,10 @@ export function RemindersListScreen() {
       />
       <View className="flex-1 bg-background">
         {error ? <CmpText className="p-4 text-sm text-destructive">{error}</CmpText> : null}
-        <View className="px-4 pt-4">
+        <View className="pt-4">
+          <StatusFilter value={status} onChange={setStatus} />
+        </View>
+        <View className="px-4 pt-3">
           <SearchBar
             value={query}
             onChangeText={setQuery}
@@ -110,18 +140,7 @@ export function RemindersListScreen() {
           // search keyboard instead of opening the reminder.
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          ListEmptyComponent={
-            loading ? null : (
-              <View className="items-center gap-4 pt-24">
-                <CmpText className="text-lg font-semibold">
-                  {searching ? t('reminders.noResultsTitle') : t('reminders.emptyTitle')}
-                </CmpText>
-                <CmpText className="text-center text-sm text-muted-foreground">
-                  {searching ? t('reminders.noResultsBody') : t('reminders.emptyBody')}
-                </CmpText>
-              </View>
-            )
-          }
+          ListEmptyComponent={loading ? null : <EmptyState searching={searching} status={status} />}
           renderItem={({ item }) => (
             <ReminderCard reminder={item} onToggleActive={onToggleActive} />
           )}
@@ -139,6 +158,29 @@ export function RemindersListScreen() {
       </View>
     </>
   );
+}
+
+// Three distinct dead ends, each with its own copy: the search found nothing,
+// the selected bucket is empty, or there are no reminders at all.
+function EmptyState({ searching, status }: { searching: boolean; status: ReminderStatus }) {
+  const { t } = useTranslation();
+
+  const [titleKey, bodyKey] = searching
+    ? ['reminders.noResultsTitle', 'reminders.noResultsBody']
+    : status === 'all'
+      ? ['reminders.emptyTitle', 'reminders.emptyBody']
+      : [`reminders.empty${capitalize(status)}Title`, `reminders.empty${capitalize(status)}Body`];
+
+  return (
+    <View className="items-center gap-4 pt-24">
+      <CmpText className="text-lg font-semibold">{t(titleKey)}</CmpText>
+      <CmpText className="text-center text-sm text-muted-foreground">{t(bodyKey)}</CmpText>
+    </View>
+  );
+}
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function HeaderActions() {
