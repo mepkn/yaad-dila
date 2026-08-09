@@ -10,6 +10,10 @@
     "title": "Reminders",
     "emptyTitle": "No reminders yet",
     "emptyBody": "Tap “New reminder” to create your first one. Make sure your ntfy server is configured in Settings.",
+    "searchPlaceholder": "Search, or #tag",
+    "searchClear": "Clear search",
+    "noResultsTitle": "No matches",
+    "noResultsBody": "Nothing matches this search. Try fewer words, or check the #tag spelling.",
     "newReminder": "New reminder",
     "finished": "Finished",
     "paused": "Paused",
@@ -92,6 +96,7 @@
   },
   "errors": {
     "serverUnreachable": "Cannot reach the server at {{url}}. Check EXPO_PUBLIC_POCKETBASE_URL — a phone cannot reach 127.0.0.1.",
+    "requestCancelled": "The request was cancelled before it finished. Please try again.",
     "invalidField": "invalid"
   },
   "ntfy": {

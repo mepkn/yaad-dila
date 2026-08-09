@@ -3,9 +3,11 @@ import { CmpFlatList } from '@/components/cmp/cmp-flat-list';
 import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { ReminderCard } from '@/features/reminders/reminder-card';
+import { SearchBar } from '@/features/reminders/search-bar';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { type Reminder } from '@/lib/reminders';
+import { matchesSearch, parseSearchQuery } from '@/lib/search';
 import { Link, Stack, useFocusEffect } from 'expo-router';
 import { setStoredTheme } from '@/lib/theme-preference';
 import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-react-native';
@@ -22,6 +24,16 @@ export function RemindersListScreen() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [query, setQuery] = React.useState('');
+
+  // `reminders` stays the unfiltered source of truth so the optimistic toggle
+  // and reload keep working regardless of what is being searched.
+  const parsedQuery = React.useMemo(() => parseSearchQuery(query), [query]);
+  const visibleReminders = React.useMemo(
+    () => reminders.filter((reminder) => matchesSearch(reminder, parsedQuery)),
+    [reminders, parsedQuery]
+  );
+  const searching = parsedQuery.tags.length > 0 || parsedQuery.text.length > 0;
 
   const load = React.useCallback(async () => {
     try {
@@ -82,18 +94,30 @@ export function RemindersListScreen() {
       />
       <View className="flex-1 bg-background">
         {error ? <CmpText className="p-4 text-sm text-destructive">{error}</CmpText> : null}
+        <View className="px-4 pt-4">
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('reminders.searchPlaceholder')}
+          />
+        </View>
         <CmpFlatList
-          data={reminders}
+          data={visibleReminders}
           keyExtractor={(r) => r.id}
           contentContainerClassName="gap-3 p-4"
           contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
+          // Without this the first tap on a card is swallowed to dismiss the
+          // search keyboard instead of opening the reminder.
+          keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             loading ? null : (
               <View className="items-center gap-4 pt-24">
-                <CmpText className="text-lg font-semibold">{t('reminders.emptyTitle')}</CmpText>
+                <CmpText className="text-lg font-semibold">
+                  {searching ? t('reminders.noResultsTitle') : t('reminders.emptyTitle')}
+                </CmpText>
                 <CmpText className="text-center text-sm text-muted-foreground">
-                  {t('reminders.emptyBody')}
+                  {searching ? t('reminders.noResultsBody') : t('reminders.emptyBody')}
                 </CmpText>
               </View>
             )
