@@ -49,3 +49,16 @@ export function isFinished(r: Reminder): boolean {
   if (r.repeat_mode === 'count') return r.fired_count >= r.repeat_count;
   return false;
 }
+
+export const REMINDER_STATUSES = ['all', 'upcoming', 'paused', 'past'] as const;
+export type ReminderStatus = (typeof REMINDER_STATUSES)[number];
+export type ReminderBucket = Exclude<ReminderStatus, 'all'>;
+
+// The single definition of which bucket a reminder falls in. Every reminder
+// lands in exactly one — no overlap, no leftovers. "upcoming" is keyed on
+// `active`, not on `next_fire > now`: an active reminder whose next_fire has
+// just slipped into the past is about to fire on the next cron tick.
+export function statusOf(r: Reminder): ReminderBucket {
+  if (r.active) return 'upcoming';
+  return isFinished(r) ? 'past' : 'paused';
+}
