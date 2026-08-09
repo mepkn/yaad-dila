@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "expo start --dev-client -c",
     "dev:usb": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8090 tcp:8090 && expo start --dev-client -c --localhost",
+    "open:usb": "adb shell am start -a android.intent.action.VIEW -d \"yaaddila://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081\"",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "clean": "rm -rf .expo node_modules",
