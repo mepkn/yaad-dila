@@ -5,7 +5,7 @@ import { CmpText } from '@/components/cmp/cmp-text';
 import { formatLocal, isFinished, type Reminder } from '@/lib/reminders';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 export function ReminderCard({
   reminder,
@@ -47,6 +47,15 @@ export function ReminderCard({
             <CmpText className="text-sm text-destructive" numberOfLines={2}>
               {t('reminders.lastSendFailed', { error: reminder.last_error })}
             </CmpText>
+          ) : null}
+          {reminder.expand?.tags?.length ? (
+            <View className="flex-row flex-wrap gap-1.5">
+              {reminder.expand.tags.map((tag) => (
+                <CmpBadge key={tag.id} variant="secondary">
+                  <CmpText className="text-xs">{tag.name}</CmpText>
+                </CmpBadge>
+              ))}
+            </View>
           ) : null}
         </CmpCardContent>
       </CmpCard>

@@ -25,7 +25,9 @@ export function RemindersListScreen() {
 
   const load = React.useCallback(async () => {
     try {
-      const records = await pb.collection('reminders').getFullList<Reminder>({ sort: 'next_fire' });
+      const records = await pb
+        .collection('reminders')
+        .getFullList<Reminder>({ sort: 'next_fire', expand: 'tags' });
       setReminders(records);
       setError(null);
     } catch (err) {

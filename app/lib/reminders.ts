@@ -1,4 +1,5 @@
 import i18n from '@/lib/i18n';
+import { type Tag } from '@/lib/tags';
 export type IntervalUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 export type RepeatMode = 'once' | 'forever' | 'count';
 
@@ -7,6 +8,7 @@ export interface Reminder {
   title: string;
   message: string;
   note: string;
+  tags: string[];
   priority: number;
   interval_n: number;
   interval_unit: IntervalUnit;
@@ -17,6 +19,7 @@ export interface Reminder {
   next_fire: string;
   active: boolean;
   last_error: string;
+  expand?: { tags?: Tag[] };
 }
 
 // PocketBase serializes dates as "2026-07-12 10:00:00.000Z" — the space makes
