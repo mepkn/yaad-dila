@@ -45,6 +45,8 @@
     "titlePlaceholder": "Water the plants",
     "messageLabel": "Message",
     "messagePlaceholder": "They are thirsty.",
+    "noteLabel": "Note",
+    "notePlaceholder": "Extra details, not sent in the notification",
     "starts": "Starts",
     "every": "Every",
     "unit": "Unit",
