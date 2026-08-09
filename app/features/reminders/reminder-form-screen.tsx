@@ -23,6 +23,7 @@ import {
 } from '@/components/cmp/cmp-select';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { CmpTextarea } from '@/components/cmp/cmp-textarea';
+import { TagInput } from '@/features/reminders/tag-input';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import {
@@ -32,6 +33,7 @@ import {
   type Reminder,
   type RepeatMode,
 } from '@/lib/reminders';
+import { listTags, resolveTagIds, type SelectedTag, type Tag } from '@/lib/tags';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
@@ -81,6 +83,8 @@ export function ReminderFormScreen() {
   const [title, setTitle] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [note, setNote] = React.useState('');
+  const [tags, setTags] = React.useState<SelectedTag[]>([]);
+  const [allTags, setAllTags] = React.useState<Tag[]>([]);
   const [priority, setPriority] = React.useState('3');
   const [intervalN, setIntervalN] = React.useState('1');
   const [intervalUnit, setIntervalUnit] = React.useState<IntervalUnit>('days');
@@ -94,15 +98,31 @@ export function ReminderFormScreen() {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const records = await listTags();
+        if (mounted) setAllTags(records);
+      } catch {
+        // Suggestions are optional; tag loading must not block the form.
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
     if (isNew) return;
     let mounted = true;
     (async () => {
       try {
-        const rec = await pb.collection('reminders').getOne<Reminder>(id);
+        const rec = await pb.collection('reminders').getOne<Reminder>(id, { expand: 'tags' });
         if (!mounted) return;
         setTitle(rec.title);
         setMessage(rec.message);
         setNote(rec.note ?? '');
+        setTags((rec.expand?.tags ?? []).map((tag) => ({ id: tag.id, name: tag.name })));
         setPriority(String(rec.priority || 3));
         setIntervalN(String(rec.interval_n));
         setIntervalUnit(rec.interval_unit);
@@ -144,11 +164,13 @@ export function ReminderFormScreen() {
     setBusy(true);
     setError(null);
     try {
+      const tagIds = await resolveTagIds(tags);
       const data: Record<string, unknown> = {
         user: pb.authStore.record?.id,
         title: title.trim(),
         message: message.trim(),
         note,
+        tags: tagIds,
         priority: Number(priority),
         interval_n: Number(intervalN),
         interval_unit: intervalUnit,
@@ -207,6 +229,9 @@ export function ReminderFormScreen() {
           className="flex-1 bg-background"
           contentContainerClassName="items-center p-4"
           contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
+          // The tag suggestion list is only ever visible while the keyboard is up; without
+          // this the first tap on a suggestion is swallowed to dismiss the keyboard.
+          keyboardShouldPersistTaps="handled"
           bottomOffset={16}>
           <CmpCard className="w-full max-w-sm">
             <CmpCardContent className="gap-4">
@@ -242,6 +267,16 @@ export function ReminderFormScreen() {
                   value={note}
                   onChangeText={setNote}
                   placeholder={t('reminder.notePlaceholder')}
+                  editable={!loading}
+                />
+              </View>
+              <View className="gap-1.5">
+                <CmpLabel nativeID="tags">{t('reminder.tagsLabel')}</CmpLabel>
+                <TagInput
+                  value={tags}
+                  onChange={setTags}
+                  available={allTags}
+                  placeholder={t('reminder.tagsPlaceholder')}
                   editable={!loading}
                 />
               </View>
