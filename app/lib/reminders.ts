@@ -6,6 +6,7 @@ export interface Reminder {
   id: string;
   title: string;
   message: string;
+  note: string;
   priority: number;
   interval_n: number;
   interval_unit: IntervalUnit;

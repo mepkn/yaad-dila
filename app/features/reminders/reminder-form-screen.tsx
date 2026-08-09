@@ -80,6 +80,7 @@ export function ReminderFormScreen() {
 
   const [title, setTitle] = React.useState('');
   const [message, setMessage] = React.useState('');
+  const [note, setNote] = React.useState('');
   const [priority, setPriority] = React.useState('3');
   const [intervalN, setIntervalN] = React.useState('1');
   const [intervalUnit, setIntervalUnit] = React.useState<IntervalUnit>('days');
@@ -101,6 +102,7 @@ export function ReminderFormScreen() {
         if (!mounted) return;
         setTitle(rec.title);
         setMessage(rec.message);
+        setNote(rec.note ?? '');
         setPriority(String(rec.priority || 3));
         setIntervalN(String(rec.interval_n));
         setIntervalUnit(rec.interval_unit);
@@ -146,6 +148,7 @@ export function ReminderFormScreen() {
         user: pb.authStore.record?.id,
         title: title.trim(),
         message: message.trim(),
+        note,
         priority: Number(priority),
         interval_n: Number(intervalN),
         interval_unit: intervalUnit,
@@ -229,6 +232,16 @@ export function ReminderFormScreen() {
                   value={message}
                   onChangeText={setMessage}
                   placeholder={t('reminder.messagePlaceholder')}
+                  editable={!loading}
+                />
+              </View>
+              <View className="gap-1.5">
+                <CmpLabel nativeID="note">{t('reminder.noteLabel')}</CmpLabel>
+                <CmpTextarea
+                  aria-labelledby="note"
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder={t('reminder.notePlaceholder')}
                   editable={!loading}
                 />
               </View>

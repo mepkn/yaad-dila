@@ -45,6 +45,8 @@
     "titlePlaceholder": "पौधों को पानी दें",
     "messageLabel": "संदेश",
     "messagePlaceholder": "वे प्यासे हैं।",
+    "noteLabel": "नोट",
+    "notePlaceholder": "अतिरिक्त जानकारी, जो नोटिफ़िकेशन में नहीं भेजी जाएगी",
     "starts": "शुरुआत",
     "every": "हर",
     "unit": "इकाई",
