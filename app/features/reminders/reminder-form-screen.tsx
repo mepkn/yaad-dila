@@ -23,6 +23,7 @@ import {
 } from '@/components/cmp/cmp-select';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { CmpTextarea } from '@/components/cmp/cmp-textarea';
+import { useFabContentPadding } from '@/features/reminders/fab-layout';
 import { TagInput } from '@/features/reminders/tag-input';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
@@ -63,6 +64,7 @@ const PRIORITY_VALUES = ['1', '2', '3', '4', '5'] as const;
 
 export function ReminderFormScreen() {
   const insets = useSafeAreaInsets();
+  const fabContentPadding = useFabContentPadding();
   const { t } = useTranslation();
   const unitOptions = (Object.keys(UNIT_LABEL_KEYS) as IntervalUnit[]).map((value) => ({
     value,
@@ -228,7 +230,11 @@ export function ReminderFormScreen() {
         <CmpKeyboardAwareScrollView
           className="flex-1 bg-background"
           contentContainerClassName="items-center p-4"
-          contentContainerStyle={{ paddingBottom: insets.bottom + (isNew ? 96 : 16) }}
+          // Only the new-reminder screen carries the voice FAB, so only it has
+          // to leave room for one.
+          contentContainerStyle={{
+            paddingBottom: isNew ? fabContentPadding : insets.bottom + 16,
+          }}
           // The tag suggestion list is only ever visible while the keyboard is up; without
           // this the first tap on a suggestion is swallowed to dismiss the keyboard.
           keyboardShouldPersistTaps="handled"

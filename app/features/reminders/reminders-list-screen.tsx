@@ -2,6 +2,7 @@ import { CmpButton } from '@/components/cmp/cmp-button';
 import { CmpFlatList } from '@/components/cmp/cmp-flat-list';
 import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
+import { useFabBottom, useFabContentPadding } from '@/features/reminders/fab-layout';
 import { ReminderCard } from '@/features/reminders/reminder-card';
 import { SearchBar } from '@/features/reminders/search-bar';
 import { StatusFilter } from '@/features/reminders/status-filter';
@@ -27,6 +28,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function RemindersListScreen() {
   const insets = useSafeAreaInsets();
+  const fabBottom = useFabBottom();
+  const fabContentPadding = useFabContentPadding();
   const { t } = useTranslation();
   const [reminders, setReminders] = React.useState<Reminder[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -162,7 +165,7 @@ export function RemindersListScreen() {
           data={reminders}
           keyExtractor={(r) => r.id}
           contentContainerClassName="gap-3 p-4"
-          contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
+          contentContainerStyle={{ paddingBottom: fabContentPadding }}
           // Without this the first tap on a card is swallowed to dismiss the
           // search keyboard instead of opening the reminder.
           keyboardShouldPersistTaps="handled"
@@ -177,11 +180,9 @@ export function RemindersListScreen() {
             <ReminderCard reminder={item} onToggleActive={onToggleActive} />
           )}
         />
-        {/* NativeTabs already inset this screen above the tab bar, and its
-            height cannot be queried — so this offsets from the screen's own
-            bottom, NOT from insets.bottom, which would double-count. Verified
-            visually per platform; see HANDOFF.md. */}
-        <View className="absolute right-6" style={{ bottom: 24 }}>
+        {/* Shares its offset with the voice FAB on the new-reminder form so the
+            button does not jump between screens — see fab-layout.ts. */}
+        <View className="absolute right-6" style={{ bottom: fabBottom }}>
           <Link href="/reminder/new" asChild>
             <CmpButton
               size="icon"
