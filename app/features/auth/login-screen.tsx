@@ -6,7 +6,6 @@ import { CmpLabel } from '@/components/cmp/cmp-label';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
-import { Link } from 'expo-router';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -71,11 +70,9 @@ export function LoginScreen() {
           <CmpButton onPress={onLogin} disabled={busy || !email || !password}>
             <CmpText>{busy ? t('auth.loggingIn') : t('auth.login')}</CmpText>
           </CmpButton>
-          <Link href="/(auth)/signup" asChild>
-            <CmpButton variant="ghost">
-              <CmpText>{t('auth.noAccount')}</CmpText>
-            </CmpButton>
-          </Link>
+          <CmpText className="text-center text-sm text-muted-foreground">
+            {t('auth.adminCreatesAccounts')}
+          </CmpText>
         </CmpCardContent>
       </CmpCard>
     </CmpKeyboardAwareScrollView>
