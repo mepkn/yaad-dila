@@ -92,17 +92,11 @@
   "auth": {
     "login": "लॉग इन",
     "loggingIn": "लॉग इन हो रहा है…",
-    "signup": "साइन अप",
-    "creatingAccount": "खाता बनाया जा रहा है…",
     "email": "ईमेल",
     "emailPlaceholder": "you@example.com",
     "password": "पासवर्ड",
     "passwordPlaceholder": "कम से कम 8 अक्षर",
-    "confirmPassword": "पासवर्ड की पुष्टि करें",
-    "confirmPlaceholder": "पासवर्ड दोबारा लिखें",
-    "passwordsMismatch": "पासवर्ड मेल नहीं खाते।",
-    "noAccount": "खाता नहीं है? साइन अप करें",
-    "haveAccount": "खाता है? लॉग इन करें"
+    "adminCreatesAccounts": "खाते व्यवस्थापक द्वारा बनाए जाते हैं।"
   },
   "errors": {
     "serverUnreachable": "{{url}} पर सर्वर से संपर्क नहीं हो पा रहा। EXPO_PUBLIC_POCKETBASE_URL जाँचें — फ़ोन 127.0.0.1 तक नहीं पहुँच सकता।",

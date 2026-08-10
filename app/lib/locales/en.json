@@ -92,17 +92,11 @@
   "auth": {
     "login": "Log in",
     "loggingIn": "Logging in…",
-    "signup": "Sign up",
-    "creatingAccount": "Creating account…",
     "email": "Email",
     "emailPlaceholder": "you@example.com",
     "password": "Password",
     "passwordPlaceholder": "min. 8 characters",
-    "confirmPassword": "Confirm password",
-    "confirmPlaceholder": "repeat password",
-    "passwordsMismatch": "Passwords do not match.",
-    "noAccount": "No account? Sign up",
-    "haveAccount": "Have an account? Log in"
+    "adminCreatesAccounts": "Accounts are created by the administrator."
   },
   "errors": {
     "serverUnreachable": "Cannot reach the server at {{url}}. Check EXPO_PUBLIC_POCKETBASE_URL — a phone cannot reach 127.0.0.1.",
