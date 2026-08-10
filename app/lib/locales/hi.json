@@ -71,6 +71,9 @@
   "reminder": {
     "newTitle": "नया रिमाइंडर",
     "editTitle": "रिमाइंडर संपादित करें",
+    "sectionReminder": "रिमाइंडर",
+    "sectionSchedule": "समय-सारणी",
+    "sectionMore": "और विकल्प",
     "titleLabel": "शीर्षक",
     "titlePlaceholder": "पौधों को पानी दें",
     "messageLabel": "संदेश",

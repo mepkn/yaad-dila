@@ -71,6 +71,9 @@
   "reminder": {
     "newTitle": "New reminder",
     "editTitle": "Edit reminder",
+    "sectionReminder": "Reminder",
+    "sectionSchedule": "Schedule",
+    "sectionMore": "More options",
     "titleLabel": "Title",
     "titlePlaceholder": "Water the plants",
     "messageLabel": "Message",
