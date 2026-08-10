@@ -7,100 +7,141 @@ import { SearchBar } from '@/features/reminders/search-bar';
 import { StatusFilter } from '@/features/reminders/status-filter';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
-import { parseUTC, statusOf, type Reminder, type ReminderStatus } from '@/lib/reminders';
-import { matchesSearch, parseSearchQuery } from '@/lib/search';
+import {
+  sortFor,
+  statusFilter,
+  statusOf,
+  type Reminder,
+  type ReminderStatus,
+} from '@/lib/reminders';
+import { buildSearchFilter, parseSearchQuery } from '@/lib/search';
 import { Link, Stack, useFocusEffect } from 'expo-router';
 import { setStoredTheme } from '@/lib/theme-preference';
 import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, Image, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const BUCKET_ORDER = { upcoming: 0, paused: 1, past: 2 } as const;
-
-// The API sorts by `next_fire` ascending, but the backend never clears
-// `next_fire` when a reminder finishes — it only flips `active` — so finished
-// reminders keep a stale past timestamp and would otherwise sort to the very
-// top. Re-order here: soonest-first for anything still scheduled, and
-// most-recently-fired-first for what is done.
-function sortForDisplay(reminders: Reminder[], status: ReminderStatus): Reminder[] {
-  const filtered = status === 'all' ? reminders : reminders.filter((r) => statusOf(r) === status);
-
-  return [...filtered].sort((a, b) => {
-    const bucketA = statusOf(a);
-    const bucketB = statusOf(b);
-    if (bucketA !== bucketB) return BUCKET_ORDER[bucketA] - BUCKET_ORDER[bucketB];
-
-    const timeA = parseUTC(a.next_fire).getTime();
-    const timeB = parseUTC(b.next_fire).getTime();
-    if (isNaN(timeA) || isNaN(timeB)) return 0;
-    return bucketA === 'past' ? timeB - timeA : timeA - timeB;
-  });
-}
+const PAGE_SIZE = 30;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function RemindersListScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [reminders, setReminders] = React.useState<Reminder[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [hasMore, setHasMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [query, setQuery] = React.useState('');
+  const [debouncedQuery, setDebouncedQuery] = React.useState('');
   // Filter state is deliberately not persisted: every visit to home starts at
   // "all", so a reminder can never be missing because of a forgotten filter.
   const [status, setStatus] = React.useState<ReminderStatus>('all');
 
-  // `reminders` stays the unfiltered source of truth so the optimistic toggle
-  // and reload keep working regardless of what is being filtered or searched.
-  const parsedQuery = React.useMemo(() => parseSearchQuery(query), [query]);
-  const byStatus = React.useMemo(() => sortForDisplay(reminders, status), [reminders, status]);
-  const visibleReminders = React.useMemo(
-    () => byStatus.filter((reminder) => matchesSearch(reminder, parsedQuery)),
-    [byStatus, parsedQuery]
-  );
+  const page = React.useRef(1);
+  // Every fetch takes a ticket; a response whose ticket is stale is dropped, so
+  // a slow reply for an old query can never overwrite newer results.
+  const requestId = React.useRef(0);
+
+  const parsedQuery = React.useMemo(() => parseSearchQuery(debouncedQuery), [debouncedQuery]);
   const searching = parsedQuery.tags.length > 0 || parsedQuery.text.length > 0;
 
-  const load = React.useCallback(async () => {
-    try {
-      const records = await pb
-        .collection('reminders')
-        .getFullList<Reminder>({ sort: 'next_fire', expand: 'tags' });
-      setReminders(records);
-      setError(null);
-    } catch (err) {
-      setError(describeError(err));
-    }
-  }, []);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query]);
 
+  const filter = React.useMemo(
+    () => [statusFilter(status), buildSearchFilter(parsedQuery)].filter(Boolean).join(' && '),
+    [status, parsedQuery]
+  );
+
+  const fetchPage = React.useCallback(
+    async (pageNum: number, replace: boolean) => {
+      const ticket = ++requestId.current;
+      try {
+        const result = await pb.collection('reminders').getList<Reminder>(pageNum, PAGE_SIZE, {
+          filter,
+          sort: sortFor(status),
+          expand: 'tags',
+          // We only need "is there another page", which the short-page check
+          // below answers — skipping the COUNT query makes each fetch cheaper.
+          skipTotal: true,
+          // Without an explicit key the SDK dedupes by method+path, so a page
+          // append and a refresh would abort each other with status 0 (the
+          // hazard documented in lib/tags.ts). Distinct keys keep them apart,
+          // while a new search reusing 'reminders-list' cancels the stale one
+          // on purpose.
+          requestKey: replace ? 'reminders-list' : 'reminders-page',
+        });
+
+        if (ticket !== requestId.current) return;
+
+        page.current = pageNum;
+        setHasMore(result.items.length === PAGE_SIZE);
+        setReminders((prev) => (replace ? result.items : [...prev, ...result.items]));
+        setError(null);
+      } catch (err) {
+        // An abort is this code cancelling itself, not a failure to report.
+        if ((err as { isAbort?: boolean })?.isAbort) return;
+        if (ticket !== requestId.current) return;
+        setError(describeError(err));
+      }
+    },
+    [filter, status]
+  );
+
+  // Refetch from page 1 whenever the query shape changes, and on every focus so
+  // a create/edit/delete is always reflected. Focus-reload does reset scroll to
+  // the top; see HANDOFF.md for the dirty-flag upgrade if that becomes annoying.
   useFocusEffect(
     React.useCallback(() => {
-      let mounted = true;
-      load().finally(() => {
-        if (mounted) setLoading(false);
+      let active = true;
+      setLoading(true);
+      fetchPage(1, true).finally(() => {
+        if (active) setLoading(false);
       });
       return () => {
-        mounted = false;
+        active = false;
       };
-    }, [load])
+    }, [fetchPage])
   );
+
+  async function loadMore() {
+    // onEndReached fires repeatedly while the user sits at the bottom; without
+    // these guards it stacks duplicate requests for the same page.
+    if (!hasMore || loadingMore || loading || refreshing) return;
+    setLoadingMore(true);
+    await fetchPage(page.current + 1, false);
+    setLoadingMore(false);
+  }
 
   async function onRefresh() {
     setRefreshing(true);
-    await load();
+    await fetchPage(1, true);
     setRefreshing(false);
   }
 
   async function onToggleActive(reminder: Reminder, active: boolean) {
-    // Optimistic flip; reload settles the truth either way.
+    // Patch in place rather than refetching: a reload would reset pagination
+    // and throw away the user's scroll position.
     setReminders((prev) => prev.map((r) => (r.id === reminder.id ? { ...r, active } : r)));
     try {
       await pb.collection('reminders').update(reminder.id, { active });
+      // Only drop the row once the server has agreed. Removing it optimistically
+      // would mean a failed update has to re-insert it at the right position,
+      // which a map() can no longer do.
+      if (status !== 'all') {
+        setReminders((prev) => prev.filter((r) => statusOf(r) === status));
+      }
     } catch (err) {
       setError(describeError(err));
+      setReminders((prev) => prev.map((r) => (r.id === reminder.id ? reminder : r)));
     }
-    await load();
   }
 
   return (
@@ -132,7 +173,7 @@ export function RemindersListScreen() {
           />
         </View>
         <CmpFlatList
-          data={visibleReminders}
+          data={reminders}
           keyExtractor={(r) => r.id}
           contentContainerClassName="gap-3 p-4"
           contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
@@ -140,6 +181,11 @@ export function RemindersListScreen() {
           // search keyboard instead of opening the reminder.
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? <ActivityIndicator className="py-4" size="small" /> : null
+          }
           ListEmptyComponent={loading ? null : <EmptyState searching={searching} status={status} />}
           renderItem={({ item }) => (
             <ReminderCard reminder={item} onToggleActive={onToggleActive} />
