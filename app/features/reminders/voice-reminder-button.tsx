@@ -90,8 +90,8 @@ export function VoiceReminderFab({ onParsed }: { onParsed: (parsed: ParsedRemind
     <View
       pointerEvents="box-none"
       className="absolute inset-x-0 bottom-0 items-end px-6"
-      // This screen has no tab bar, but it reserves the same offset anyway so
-      // the button lands exactly where the home FAB was — see fab-layout.ts.
+      // Shares its offset with the home FAB so the button does not jump between
+      // screens, and clears the tab bar — see fab-layout.ts.
       style={{ paddingBottom: fabBottom }}>
       {showPill ? (
         <View className="mb-3 w-full rounded-xl border border-border bg-card p-3 shadow-sm">

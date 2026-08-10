@@ -9,9 +9,20 @@ export default function TabsLayout() {
 
   return (
     <NativeTabs>
-      {/* The bar only stays opaque when a scrollable is the screen's first
-          child; on Home the list sits below the filter chips and search bar. */}
-      <NativeTabs.Trigger name="index" disableTransparentOnScrollEdge>
+      {/* `name` must match the route name INCLUDING the parentheses, or the tab
+          renders blank rather than erroring.
+
+          disableTransparentOnScrollEdge: the bar only stays opaque when a
+          scrollable is the screen's first child, and on Home the list sits
+          below the filter chips and search bar.
+
+          disableAutomaticContentInsets: the reminder form nested in this tab
+          IS a first-child scroll view, so NativeTabs would inset it on top of
+          its own padding and indent it twice under the header. */}
+      <NativeTabs.Trigger
+        name="(home)"
+        disableTransparentOnScrollEdge
+        disableAutomaticContentInsets>
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
         <NativeTabs.Trigger.Label>{t('tabs.home')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
