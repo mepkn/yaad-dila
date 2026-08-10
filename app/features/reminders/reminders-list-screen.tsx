@@ -2,6 +2,7 @@ import { CmpButton } from '@/components/cmp/cmp-button';
 import { CmpFlatList } from '@/components/cmp/cmp-flat-list';
 import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
+import { useFabBottom, useFabContentPadding } from '@/features/reminders/fab-layout';
 import { ReminderCard } from '@/features/reminders/reminder-card';
 import { SearchBar } from '@/features/reminders/search-bar';
 import { StatusFilter } from '@/features/reminders/status-filter';
@@ -15,13 +16,11 @@ import {
   type ReminderStatus,
 } from '@/lib/reminders';
 import { buildSearchFilter, parseSearchQuery } from '@/lib/search';
-import { Link, Stack, useFocusEffect } from 'expo-router';
-import { setStoredTheme } from '@/lib/theme-preference';
-import { LogOutIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+import { Link, useFocusEffect } from 'expo-router';
+import { PlusIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PAGE_SIZE = 30;
@@ -29,6 +28,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function RemindersListScreen() {
   const insets = useSafeAreaInsets();
+  const fabBottom = useFabBottom();
+  const fabContentPadding = useFabContentPadding();
   const { t } = useTranslation();
   const [reminders, setReminders] = React.useState<Reminder[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -146,21 +147,9 @@ export function RemindersListScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: t('common.appName'),
-          headerTitle: () => (
-            <View className="flex-row items-center gap-2">
-              <Image source={require('@/assets/images/icon.png')} className="h-7 w-7 rounded-lg" />
-              <CmpText className="text-lg font-semibold text-foreground">
-                {t('common.appName')}
-              </CmpText>
-            </View>
-          ),
-          headerRight: () => <HeaderActions />,
-        }}
-      />
-      <View className="flex-1 bg-background">
+      {/* No header — the tab bar carries navigation identity, so the screen
+          owns its own top inset. */}
+      <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
         {error ? <CmpText className="p-4 text-sm text-destructive">{error}</CmpText> : null}
         <View className="pt-4">
           <StatusFilter value={status} onChange={setStatus} />
@@ -176,7 +165,7 @@ export function RemindersListScreen() {
           data={reminders}
           keyExtractor={(r) => r.id}
           contentContainerClassName="gap-3 p-4"
-          contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
+          contentContainerStyle={{ paddingBottom: fabContentPadding }}
           // Without this the first tap on a card is swallowed to dismiss the
           // search keyboard instead of opening the reminder.
           keyboardShouldPersistTaps="handled"
@@ -191,7 +180,9 @@ export function RemindersListScreen() {
             <ReminderCard reminder={item} onToggleActive={onToggleActive} />
           )}
         />
-        <View className="absolute right-6" style={{ bottom: insets.bottom + 24 }}>
+        {/* Shares its offset with the voice FAB on the new-reminder form so the
+            button does not jump between screens — see fab-layout.ts. */}
+        <View className="absolute right-6" style={{ bottom: fabBottom }}>
           <Link href="/reminder/new" asChild>
             <CmpButton
               size="icon"
@@ -227,35 +218,4 @@ function EmptyState({ searching, status }: { searching: boolean; status: Reminde
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function HeaderActions() {
-  const { colorScheme, setColorScheme } = useColorScheme();
-  return (
-    <View className="flex-row">
-      <CmpButton
-        variant="ghost"
-        size="icon"
-        onPress={() => {
-          const next = colorScheme === 'dark' ? 'light' : 'dark';
-          setColorScheme(next);
-          setStoredTheme(next);
-        }}>
-        <CmpIcon as={colorScheme === 'dark' ? SunIcon : MoonIcon} className="size-5" />
-      </CmpButton>
-      <Link href="/settings" asChild>
-        <CmpButton variant="ghost" size="icon">
-          <CmpIcon as={SettingsIcon} className="size-5" />
-        </CmpButton>
-      </Link>
-      <CmpButton
-        variant="ghost"
-        size="icon"
-        onPress={() => {
-          pb.authStore.clear();
-        }}>
-        <CmpIcon as={LogOutIcon} className="size-5" />
-      </CmpButton>
-    </View>
-  );
 }

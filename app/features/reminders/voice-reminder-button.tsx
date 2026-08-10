@@ -1,18 +1,18 @@
 import { CmpButton } from '@/components/cmp/cmp-button';
 import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
+import { useFabBottom } from '@/features/reminders/fab-layout';
 import { getStoredGeminiKey, parseReminderText, type ParsedReminder } from '@/lib/gemini';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { MicIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Phase = 'idle' | 'listening' | 'parsing';
 
 export function VoiceReminderFab({ onParsed }: { onParsed: (parsed: ParsedReminder) => void }) {
-  const insets = useSafeAreaInsets();
+  const fabBottom = useFabBottom();
   const { t, i18n } = useTranslation();
   const [phase, setPhase] = React.useState<Phase>('idle');
   const [transcript, setTranscript] = React.useState('');
@@ -90,7 +90,9 @@ export function VoiceReminderFab({ onParsed }: { onParsed: (parsed: ParsedRemind
     <View
       pointerEvents="box-none"
       className="absolute inset-x-0 bottom-0 items-end px-6"
-      style={{ paddingBottom: insets.bottom + 24 }}>
+      // Shares its offset with the home FAB so the button does not jump between
+      // screens, and clears the tab bar — see fab-layout.ts.
+      style={{ paddingBottom: fabBottom }}>
       {showPill ? (
         <View className="mb-3 w-full rounded-xl border border-border bg-card p-3 shadow-sm">
           {error ? (

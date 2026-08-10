@@ -6,6 +6,10 @@
     "delete": "हटाएँ",
     "working": "प्रक्रिया जारी…"
   },
+  "tabs": {
+    "home": "होम",
+    "settings": "सेटिंग्स"
+  },
   "reminders": {
     "title": "रिमाइंडर",
     "emptyTitle": "अभी कोई रिमाइंडर नहीं",
@@ -50,7 +54,19 @@
     "languagePlaceholder": "भाषा चुनें",
     "geminiKey": "Gemini API कुंजी (वॉइस इनपुट)",
     "geminiKeyHint": "Google AI Studio से मुफ़्त कुंजी। नए रिमाइंडर स्क्रीन पर वॉइस बटन सक्षम करती है।",
-    "saveGeminiKey": "AI कुंजी सहेजें"
+    "saveGeminiKey": "AI कुंजी सहेजें",
+    "sectionNotifications": "सूचनाएँ",
+    "sectionVoiceAi": "आवाज़ और AI",
+    "sectionAppearance": "भाषा और रूप",
+    "sectionAccount": "खाता",
+    "theme": "थीम",
+    "themeSystem": "सिस्टम",
+    "themeLight": "लाइट",
+    "themeDark": "डार्क",
+    "signedInAs": "साइन इन के रूप में",
+    "logout": "लॉग आउट",
+    "logoutConfirmTitle": "लॉग आउट करें?",
+    "logoutConfirmBody": "दोबारा साइन इन करने के लिए आपको अपना ईमेल और पासवर्ड चाहिए होगा। खाते व्यवस्थापक द्वारा बनाए जाते हैं।"
   },
   "reminder": {
     "newTitle": "नया रिमाइंडर",
