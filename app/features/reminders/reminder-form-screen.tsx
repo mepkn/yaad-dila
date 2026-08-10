@@ -10,7 +10,13 @@ import {
   CmpAlertDialogTrigger,
 } from '@/components/cmp/cmp-alert-dialog';
 import { CmpButton } from '@/components/cmp/cmp-button';
-import { CmpCard, CmpCardContent } from '@/components/cmp/cmp-card';
+import { CmpCard, CmpCardContent, CmpCardHeader, CmpCardTitle } from '@/components/cmp/cmp-card';
+import {
+  CmpCollapsible,
+  CmpCollapsibleContent,
+  CmpCollapsibleTrigger,
+} from '@/components/cmp/cmp-collapsible';
+import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpInput } from '@/components/cmp/cmp-input';
 import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
 import { CmpLabel } from '@/components/cmp/cmp-label';
@@ -37,11 +43,10 @@ import {
 import { listTags, resolveTagIds, type SelectedTag, type Tag } from '@/lib/tags';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
-
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { VoiceReminderFab } from '@/features/reminders/voice-reminder-button';
 import { type ParsedReminder } from '@/lib/gemini';
@@ -63,7 +68,6 @@ const REPEAT_LABEL_KEYS: Record<RepeatMode, string> = {
 const PRIORITY_VALUES = ['1', '2', '3', '4', '5'] as const;
 
 export function ReminderFormScreen() {
-  const insets = useSafeAreaInsets();
   const fabBottom = useFabBottom();
   const fabContentPadding = useFabContentPadding();
   const { t } = useTranslation();
@@ -99,6 +103,10 @@ export function ReminderFormScreen() {
   const [loading, setLoading] = React.useState(!isNew);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // Note / tags / priority are rarely touched, so the section starts closed. Editing an
+  // existing reminder that already uses any of them opens it once, on load, so those
+  // values are never hidden from the person who set them.
+  const [moreOpen, setMoreOpen] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
@@ -124,9 +132,13 @@ export function ReminderFormScreen() {
         if (!mounted) return;
         setTitle(rec.title);
         setMessage(rec.message);
-        setNote(rec.note ?? '');
-        setTags((rec.expand?.tags ?? []).map((tag) => ({ id: tag.id, name: tag.name })));
-        setPriority(String(rec.priority || 3));
+        const recNote = rec.note ?? '';
+        const recTags = (rec.expand?.tags ?? []).map((tag) => ({ id: tag.id, name: tag.name }));
+        const recPriority = String(rec.priority || 3);
+        setNote(recNote);
+        setTags(recTags);
+        setPriority(recPriority);
+        if (recNote.trim() || recTags.length > 0 || recPriority !== '3') setMoreOpen(true);
         setIntervalN(String(rec.interval_n));
         setIntervalUnit(rec.interval_unit);
         setRepeatMode(rec.repeat_mode);
@@ -230,7 +242,7 @@ export function ReminderFormScreen() {
       <View className="flex-1">
         <CmpKeyboardAwareScrollView
           className="flex-1 bg-background"
-          contentContainerClassName="items-center p-4"
+          contentContainerClassName="items-center gap-4 p-4"
           // Both cases must clear the tab bar. Only the new-reminder screen
           // also carries the voice FAB, so only it reserves the FAB's height.
           contentContainerStyle={{
@@ -241,6 +253,9 @@ export function ReminderFormScreen() {
           keyboardShouldPersistTaps="handled"
           bottomOffset={16}>
           <CmpCard className="w-full max-w-sm">
+            <CmpCardHeader>
+              <CmpCardTitle>{t('reminder.sectionReminder')}</CmpCardTitle>
+            </CmpCardHeader>
             <CmpCardContent className="gap-4">
               {lastError ? (
                 <CmpText className="text-sm text-destructive">
@@ -267,26 +282,14 @@ export function ReminderFormScreen() {
                   editable={!loading}
                 />
               </View>
-              <View className="gap-1.5">
-                <CmpLabel nativeID="note">{t('reminder.noteLabel')}</CmpLabel>
-                <CmpTextarea
-                  aria-labelledby="note"
-                  value={note}
-                  onChangeText={setNote}
-                  placeholder={t('reminder.notePlaceholder')}
-                  editable={!loading}
-                />
-              </View>
-              <View className="gap-1.5">
-                <CmpLabel nativeID="tags">{t('reminder.tagsLabel')}</CmpLabel>
-                <TagInput
-                  value={tags}
-                  onChange={setTags}
-                  available={allTags}
-                  placeholder={t('reminder.tagsPlaceholder')}
-                  editable={!loading}
-                />
-              </View>
+            </CmpCardContent>
+          </CmpCard>
+
+          <CmpCard className="w-full max-w-sm">
+            <CmpCardHeader>
+              <CmpCardTitle>{t('reminder.sectionSchedule')}</CmpCardTitle>
+            </CmpCardHeader>
+            <CmpCardContent className="gap-4">
               <View className="gap-1.5">
                 <CmpLabel>{t('reminder.starts')}</CmpLabel>
                 <CmpButton variant="outline" onPress={onPickStartAt} disabled={loading}>
@@ -359,56 +362,102 @@ export function ReminderFormScreen() {
                   />
                 </View>
               ) : null}
-              <View className="gap-1.5">
-                <CmpLabel nativeID="priority">{t('reminder.priority')}</CmpLabel>
-                <CmpSelect
-                  value={priorityOptions.find((o) => o.value === priority)}
-                  onValueChange={(option) => {
-                    if (option) setPriority(option.value);
-                  }}>
-                  <CmpSelectTrigger aria-labelledby="priority">
-                    <CmpSelectValue placeholder={t('reminder.priority')} />
-                  </CmpSelectTrigger>
-                  <CmpSelectContent>
-                    {priorityOptions.map((o) => (
-                      <CmpSelectItem key={o.value} value={o.value} label={o.label} />
-                    ))}
-                  </CmpSelectContent>
-                </CmpSelect>
-              </View>
-              {error ? <CmpText className="text-sm text-destructive">{error}</CmpText> : null}
-              <CmpButton onPress={onSave} disabled={!canSave}>
-                <CmpText>
-                  {busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}
-                </CmpText>
-              </CmpButton>
-              {!isNew ? (
-                <CmpAlertDialog>
-                  <CmpAlertDialogTrigger asChild>
-                    <CmpButton variant="destructive" disabled={busy || loading}>
-                      <CmpText>{t('common.delete')}</CmpText>
-                    </CmpButton>
-                  </CmpAlertDialogTrigger>
-                  <CmpAlertDialogContent>
-                    <CmpAlertDialogHeader>
-                      <CmpAlertDialogTitle>{t('reminder.deleteTitle')}</CmpAlertDialogTitle>
-                      <CmpAlertDialogDescription>
-                        {t('reminder.deleteBody', { title })}
-                      </CmpAlertDialogDescription>
-                    </CmpAlertDialogHeader>
-                    <CmpAlertDialogFooter>
-                      <CmpAlertDialogCancel>
-                        <CmpText>{t('common.cancel')}</CmpText>
-                      </CmpAlertDialogCancel>
-                      <CmpAlertDialogAction onPress={onDelete}>
-                        <CmpText>{t('common.delete')}</CmpText>
-                      </CmpAlertDialogAction>
-                    </CmpAlertDialogFooter>
-                  </CmpAlertDialogContent>
-                </CmpAlertDialog>
-              ) : null}
             </CmpCardContent>
           </CmpCard>
+
+          <CmpCollapsible className="w-full max-w-sm" open={moreOpen} onOpenChange={setMoreOpen}>
+            <CmpCard className="w-full">
+              {/* The trigger renders its own Pressable and stands in for CmpCardHeader —
+                  slotting it onto the header instead would drop onPress, since the header
+                  is a plain View. Hence the header's px-6 repeated here. */}
+              <CmpCollapsibleTrigger className="flex-row items-center gap-2 px-6">
+                {/* flex-1 on the title, shrink-0 on the icon: without it the row squeezes a
+                    longer translation (Hindi "और विकल्प") down to its first word. */}
+                <CmpCardTitle className="flex-1">{t('reminder.sectionMore')}</CmpCardTitle>
+                {/* Swapping the glyph rather than rotating one: NativeWind's rotate-180
+                    makes the icon vanish here instead of flipping it. */}
+                <CmpIcon
+                  as={moreOpen ? ChevronUpIcon : ChevronDownIcon}
+                  className="size-5 shrink-0 text-muted-foreground"
+                />
+              </CmpCollapsibleTrigger>
+              <CmpCollapsibleContent>
+                <CmpCardContent className="gap-4">
+                  <View className="gap-1.5">
+                    <CmpLabel nativeID="note">{t('reminder.noteLabel')}</CmpLabel>
+                    <CmpTextarea
+                      aria-labelledby="note"
+                      value={note}
+                      onChangeText={setNote}
+                      placeholder={t('reminder.notePlaceholder')}
+                      editable={!loading}
+                    />
+                  </View>
+                  <View className="gap-1.5">
+                    <CmpLabel nativeID="tags">{t('reminder.tagsLabel')}</CmpLabel>
+                    <TagInput
+                      value={tags}
+                      onChange={setTags}
+                      available={allTags}
+                      placeholder={t('reminder.tagsPlaceholder')}
+                      editable={!loading}
+                    />
+                  </View>
+                  <View className="gap-1.5">
+                    <CmpLabel nativeID="priority">{t('reminder.priority')}</CmpLabel>
+                    <CmpSelect
+                      value={priorityOptions.find((o) => o.value === priority)}
+                      onValueChange={(option) => {
+                        if (option) setPriority(option.value);
+                      }}>
+                      <CmpSelectTrigger aria-labelledby="priority">
+                        <CmpSelectValue placeholder={t('reminder.priority')} />
+                      </CmpSelectTrigger>
+                      <CmpSelectContent>
+                        {priorityOptions.map((o) => (
+                          <CmpSelectItem key={o.value} value={o.value} label={o.label} />
+                        ))}
+                      </CmpSelectContent>
+                    </CmpSelect>
+                  </View>
+                </CmpCardContent>
+              </CmpCollapsibleContent>
+            </CmpCard>
+          </CmpCollapsible>
+
+          <View className="w-full max-w-sm gap-4">
+            {error ? <CmpText className="text-sm text-destructive">{error}</CmpText> : null}
+            <CmpButton onPress={onSave} disabled={!canSave}>
+              <CmpText>
+                {busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}
+              </CmpText>
+            </CmpButton>
+            {!isNew ? (
+              <CmpAlertDialog>
+                <CmpAlertDialogTrigger asChild>
+                  <CmpButton variant="destructive" disabled={busy || loading}>
+                    <CmpText>{t('common.delete')}</CmpText>
+                  </CmpButton>
+                </CmpAlertDialogTrigger>
+                <CmpAlertDialogContent>
+                  <CmpAlertDialogHeader>
+                    <CmpAlertDialogTitle>{t('reminder.deleteTitle')}</CmpAlertDialogTitle>
+                    <CmpAlertDialogDescription>
+                      {t('reminder.deleteBody', { title })}
+                    </CmpAlertDialogDescription>
+                  </CmpAlertDialogHeader>
+                  <CmpAlertDialogFooter>
+                    <CmpAlertDialogCancel>
+                      <CmpText>{t('common.cancel')}</CmpText>
+                    </CmpAlertDialogCancel>
+                    <CmpAlertDialogAction onPress={onDelete}>
+                      <CmpText>{t('common.delete')}</CmpText>
+                    </CmpAlertDialogAction>
+                  </CmpAlertDialogFooter>
+                </CmpAlertDialogContent>
+              </CmpAlertDialog>
+            ) : null}
+          </View>
         </CmpKeyboardAwareScrollView>
         {isNew ? <VoiceReminderFab onParsed={onVoiceParsed} /> : null}
       </View>
