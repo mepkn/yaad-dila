@@ -11,6 +11,12 @@ import {
 } from '@/components/cmp/cmp-alert-dialog';
 import { CmpButton } from '@/components/cmp/cmp-button';
 import { CmpCard, CmpCardContent, CmpCardHeader, CmpCardTitle } from '@/components/cmp/cmp-card';
+import {
+  CmpCollapsible,
+  CmpCollapsibleContent,
+  CmpCollapsibleTrigger,
+} from '@/components/cmp/cmp-collapsible';
+import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpInput } from '@/components/cmp/cmp-input';
 import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
 import { CmpLabel } from '@/components/cmp/cmp-label';
@@ -22,6 +28,7 @@ import {
   CmpSelectValue,
 } from '@/components/cmp/cmp-select';
 import { CmpText } from '@/components/cmp/cmp-text';
+import { changePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
@@ -34,6 +41,7 @@ import {
   THEME_OPTIONS,
   type AppTheme,
 } from '@/lib/theme-preference';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -75,6 +83,15 @@ export function SettingsScreen() {
   // would show "Light" the moment you picked "System".
   const [theme, setTheme] = React.useState<AppTheme>('system');
   const [geminiStatus, setGeminiStatus] = React.useState<{
+    kind: 'ok' | 'error';
+    text: string;
+  } | null>(null);
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [passwordOpen, setPasswordOpen] = React.useState(false);
+  const [passwordBusy, setPasswordBusy] = React.useState(false);
+  const [passwordStatus, setPasswordStatus] = React.useState<{
     kind: 'ok' | 'error';
     text: string;
   } | null>(null);
@@ -164,6 +181,34 @@ export function SettingsScreen() {
       setStatus({ kind: 'error', text: describeError(err) });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onChangePassword() {
+    // Cheap checks first — no point spending a round-trip on a typo.
+    if (newPassword !== confirmPassword) {
+      setPasswordStatus({ kind: 'error', text: t('settings.passwordMismatch') });
+      return;
+    }
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setPasswordStatus({
+        kind: 'error',
+        text: t('settings.passwordTooShort', { min: MIN_PASSWORD_LENGTH }),
+      });
+      return;
+    }
+    setPasswordBusy(true);
+    setPasswordStatus(null);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordStatus({ kind: 'ok', text: t('settings.passwordChanged') });
+    } catch (err) {
+      setPasswordStatus({ kind: 'error', text: describeError(err) });
+    } finally {
+      setPasswordBusy(false);
     }
   }
 
@@ -371,8 +416,78 @@ export function SettingsScreen() {
               {pb.authStore.record?.email ?? '—'}
             </CmpText>
           </View>
-          {/* Behind a confirm: logging out is one tap from the controls above,
-              and there is no password-reset flow to recover from a mistake. */}
+          <CmpCollapsible open={passwordOpen} onOpenChange={setPasswordOpen}>
+            <CmpCollapsibleTrigger className="flex-row items-center gap-2">
+              {/* CmpText, not CmpLabel: Label renders its own Pressable, which
+                  swallows the press before the trigger ever sees it. flex-1 on the
+                  text and shrink-0 on the icon so a longer translation is not
+                  squeezed down to its first word. */}
+              <CmpText className="flex-1 text-sm font-medium">
+                {t('settings.changePassword')}
+              </CmpText>
+              <CmpIcon
+                as={passwordOpen ? ChevronUpIcon : ChevronDownIcon}
+                className="size-5 shrink-0 text-muted-foreground"
+              />
+            </CmpCollapsibleTrigger>
+            <CmpCollapsibleContent>
+              <View className="gap-4 pt-4">
+                <View className="gap-1.5">
+                  <CmpLabel nativeID="current_password">{t('settings.currentPassword')}</CmpLabel>
+                  <CmpInput
+                    aria-labelledby="current_password"
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    autoCapitalize="none"
+                    secureTextEntry
+                    placeholder="••••••••"
+                  />
+                </View>
+                <View className="gap-1.5">
+                  <CmpLabel nativeID="new_password">{t('settings.newPassword')}</CmpLabel>
+                  <CmpInput
+                    aria-labelledby="new_password"
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    autoCapitalize="none"
+                    secureTextEntry
+                    placeholder="••••••••"
+                  />
+                </View>
+                <View className="gap-1.5">
+                  <CmpLabel nativeID="confirm_password">{t('settings.confirmPassword')}</CmpLabel>
+                  <CmpInput
+                    aria-labelledby="confirm_password"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    autoCapitalize="none"
+                    secureTextEntry
+                    placeholder="••••••••"
+                  />
+                </View>
+                {passwordStatus ? (
+                  <CmpText
+                    className={
+                      passwordStatus.kind === 'ok'
+                        ? 'text-sm text-green-600'
+                        : 'text-sm text-destructive'
+                    }>
+                    {passwordStatus.text}
+                  </CmpText>
+                ) : null}
+                <CmpButton
+                  variant="secondary"
+                  onPress={onChangePassword}
+                  disabled={passwordBusy || !currentPassword || !newPassword || !confirmPassword}>
+                  <CmpText>
+                    {passwordBusy ? t('common.working') : t('settings.changePassword')}
+                  </CmpText>
+                </CmpButton>
+              </View>
+            </CmpCollapsibleContent>
+          </CmpCollapsible>
+
+          {/* Behind a confirm: logging out is one tap from the controls above. */}
           <CmpAlertDialog>
             <CmpAlertDialogTrigger asChild>
               <CmpButton variant="destructive">
