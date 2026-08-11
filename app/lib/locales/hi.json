@@ -8,6 +8,7 @@
   },
   "tabs": {
     "home": "होम",
+    "tags": "टैग",
     "settings": "सेटिंग्स"
   },
   "reminders": {
@@ -34,6 +35,24 @@
     "doneFired": "पूर्ण — {{count}} बार भेजा गया",
     "next": "अगला: {{date}}",
     "lastSendFailed": "पिछला भेजना विफल: {{error}}"
+  },
+  "tags": {
+    "title": "टैग",
+    "emptyTitle": "अभी कोई टैग नहीं",
+    "emptyBody": "किसी रिमाइंडर में टैग जोड़ें, या यहाँ + दबाकर नया बनाएँ।",
+    "count_one": "{{count}} रिमाइंडर",
+    "count_other": "{{count}} रिमाइंडर",
+    "newTag": "नया टैग",
+    "createTitle": "नया टैग",
+    "renameTitle": "टैग का नाम बदलें",
+    "nameLabel": "नाम",
+    "namePlaceholder": "जैसे जन्मदिन",
+    "nameRequired": "टैग का नाम दर्ज करें।",
+    "duplicate": "इस नाम का टैग पहले से मौजूद है।",
+    "edit": "टैग {{name}} संपादित करें",
+    "deleteAction": "टैग {{name}} हटाएँ",
+    "deleteTitle": "“{{name}}” हटाएँ?",
+    "deleteBody": "यह टैग उन सभी रिमाइंडर से हट जाएगा जो इसका उपयोग करते हैं। रिमाइंडर स्वयं बने रहेंगे।"
   },
   "settings": {
     "title": "सेटिंग्स",

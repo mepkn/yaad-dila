@@ -9,15 +9,58 @@ export interface Tag {
 
 export type SelectedTag = { id?: string; name: string };
 
+export interface TagWithCount extends Tag {
+  count: number;
+}
+
 export function listTags(): Promise<Tag[]> {
   return pb.collection('tags').getFullList<Tag>({ sort: 'name' });
+}
+
+/**
+ * Every tag plus how many reminders carry it.
+ *
+ * One count query per tag, each with its own `requestKey`. Without distinct
+ * keys the SDK dedupes by method + path and the parallel counts abort each
+ * other as status 0 — the same hazard documented on `resolveTagIds` below.
+ */
+export async function listTagsWithCounts(): Promise<TagWithCount[]> {
+  const tags = await listTags();
+
+  return Promise.all(
+    tags.map(async (tag) => {
+      const result = await pb.collection('reminders').getList(1, 1, {
+        filter: pb.filter('tags.id ?= {:id}', { id: tag.id }),
+        fields: 'id',
+        requestKey: `tag-count-${tag.id}`,
+      });
+      return { ...tag, count: result.totalItems };
+    })
+  );
+}
+
+export function createTag(name: string): Promise<Tag> {
+  return pb.collection('tags').create<Tag>({
+    name: normalizeTagName(name),
+    user: pb.authStore.record?.id,
+  });
+}
+
+export function renameTag(id: string, name: string): Promise<Tag> {
+  return pb.collection('tags').update<Tag>(id, { name: normalizeTagName(name) });
+}
+
+// PocketBase strips a deleted record's id out of every relation field that
+// referenced it, so the reminders themselves survive and simply lose the badge.
+export async function deleteTag(id: string): Promise<void> {
+  await pb.collection('tags').delete(id);
 }
 
 export function normalizeTagName(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
 }
 
-function isUniqueConstraintError(err: unknown): boolean {
+export function isUniqueConstraintError(err: unknown): boolean {
   if (!(err instanceof ClientResponseError) || err.status !== 400) return false;
   const fields = err.response?.data as Record<string, { code?: string }> | undefined;
   return Object.values(fields ?? {}).some((field) => field.code === 'validation_not_unique');
