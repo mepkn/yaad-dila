@@ -67,9 +67,7 @@ export function TagEditDialog({ tag, open, onOpenChange, onSaved }: TagEditDialo
 
   return (
     <CmpDialog open={open} onOpenChange={onOpenChange}>
-      {/* The primitive sizes itself to its children on a phone, which leaves a
-          narrow column; pin the width instead. */}
-      <CmpDialogContent className="w-[88%]">
+      <CmpDialogContent>
         <CmpDialogHeader>
           <CmpDialogTitle>{tag ? t('tags.renameTitle') : t('tags.createTitle')}</CmpDialogTitle>
         </CmpDialogHeader>
