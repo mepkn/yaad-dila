@@ -8,6 +8,7 @@
   },
   "tabs": {
     "home": "Home",
+    "tags": "Tags",
     "settings": "Settings"
   },
   "reminders": {
@@ -34,6 +35,24 @@
     "doneFired": "Done — fired {{count}}×",
     "next": "Next: {{date}}",
     "lastSendFailed": "Last send failed: {{error}}"
+  },
+  "tags": {
+    "title": "Tags",
+    "emptyTitle": "No tags yet",
+    "emptyBody": "Add a tag to a reminder, or tap + to create one here.",
+    "count_one": "{{count}} reminder",
+    "count_other": "{{count}} reminders",
+    "newTag": "New tag",
+    "createTitle": "New tag",
+    "renameTitle": "Rename tag",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. birthday",
+    "nameRequired": "Enter a tag name.",
+    "duplicate": "You already have a tag with this name.",
+    "edit": "Edit tag {{name}}",
+    "deleteAction": "Delete tag {{name}}",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteBody": "The tag is removed from every reminder that uses it. The reminders themselves are kept."
   },
   "settings": {
     "title": "Settings",

@@ -26,6 +26,12 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
         <NativeTabs.Trigger.Label>{t('tabs.home')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
+      {/* Same reason as Settings below: the tag list applies its own
+          insets.top, so NativeTabs must not inset it a second time. */}
+      <NativeTabs.Trigger name="tags" disableAutomaticContentInsets>
+        <NativeTabs.Trigger.Icon sf="tag.fill" md="label" />
+        <NativeTabs.Trigger.Label>{t('tabs.tags')}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
       {/* Settings scrolls, so NativeTabs would inset its scroll view by the
           safe area on top of the screen's own padding and indent the first card
           twice. Home is unaffected — its padding sits on a plain View. */}
