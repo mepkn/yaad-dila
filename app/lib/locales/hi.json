@@ -66,7 +66,14 @@
     "signedInAs": "साइन इन के रूप में",
     "logout": "लॉग आउट",
     "logoutConfirmTitle": "लॉग आउट करें?",
-    "logoutConfirmBody": "दोबारा साइन इन करने के लिए आपको अपना ईमेल और पासवर्ड चाहिए होगा। खाते व्यवस्थापक द्वारा बनाए जाते हैं।"
+    "logoutConfirmBody": "दोबारा साइन इन करने के लिए आपको अपना ईमेल और पासवर्ड चाहिए होगा। खाते व्यवस्थापक द्वारा बनाए जाते हैं।",
+    "changePassword": "पासवर्ड बदलें",
+    "currentPassword": "मौजूदा पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmPassword": "नए पासवर्ड की पुष्टि करें",
+    "passwordChanged": "पासवर्ड बदल दिया गया।",
+    "passwordMismatch": "दोनों नए पासवर्ड मेल नहीं खाते।",
+    "passwordTooShort": "नया पासवर्ड कम से कम {{min}} अक्षरों का होना चाहिए।"
   },
   "reminder": {
     "newTitle": "नया रिमाइंडर",
@@ -120,7 +127,8 @@
   "errors": {
     "serverUnreachable": "{{url}} पर सर्वर से संपर्क नहीं हो पा रहा। EXPO_PUBLIC_POCKETBASE_URL जाँचें — फ़ोन 127.0.0.1 तक नहीं पहुँच सकता।",
     "requestCancelled": "अनुरोध पूरा होने से पहले रद्द हो गया। कृपया फिर से कोशिश करें।",
-    "invalidField": "अमान्य"
+    "invalidField": "अमान्य",
+    "notSignedIn": "आप साइन इन नहीं हैं।"
   },
   "ntfy": {
     "missingConfig": "बेस URL और टॉपिक आवश्यक हैं।",
