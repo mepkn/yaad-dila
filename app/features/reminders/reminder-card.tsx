@@ -43,6 +43,18 @@ export function ReminderCard({
                 ? t('reminders.next', { date: formatLocal(reminder.next_fire) })
                 : t('reminders.paused')}
           </CmpText>
+          {/* The only backward-looking line on a running reminder: everything
+              else on the card is the schedule's intent, this is what happened. */}
+          {reminder.last_fired ? (
+            <CmpText
+              className={
+                reminder.last_error ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'
+              }>
+              {reminder.last_error
+                ? t('reminders.lastFailedAt', { date: formatLocal(reminder.last_fired) })
+                : t('reminders.lastSentAt', { date: formatLocal(reminder.last_fired) })}
+            </CmpText>
+          ) : null}
           {reminder.last_error ? (
             <CmpText className="text-sm text-destructive" numberOfLines={2}>
               {t('reminders.lastSendFailed', { error: reminder.last_error })}

@@ -34,7 +34,9 @@
     "paused": "रुका हुआ",
     "doneFired": "पूर्ण — {{count}} बार भेजा गया",
     "next": "अगला: {{date}}",
-    "lastSendFailed": "पिछला भेजना विफल: {{error}}"
+    "lastSendFailed": "पिछला भेजना विफल: {{error}}",
+    "lastFailedAt": "विफल: {{date}}",
+    "lastSentAt": "भेजा गया: {{date}}"
   },
   "tags": {
     "title": "टैग",
@@ -132,7 +134,9 @@
     "priority5": "5 — अधिकतम",
     "deleteTitle": "यह रिमाइंडर हटाएँ?",
     "deleteBody": "“{{title}}” भेजना बंद हो जाएगा और इसे वापस नहीं लाया जा सकेगा।",
-    "lastSendFailed": "पिछला भेजना विफल: {{error}}"
+    "lastSendFailed": "पिछला भेजना विफल: {{error}}",
+    "lastFailedAt": "पिछला प्रयास विफल: {{date}}",
+    "lastSentAt": "पिछली बार भेजा गया: {{date}}"
   },
   "auth": {
     "login": "लॉग इन",

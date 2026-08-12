@@ -101,6 +101,7 @@ export function ReminderFormScreen() {
   const [startAt, setStartAt] = React.useState<Date>(() => new Date());
   const [showIosPicker, setShowIosPicker] = React.useState(false);
   const [lastError, setLastError] = React.useState('');
+  const [lastFired, setLastFired] = React.useState('');
   const [loading, setLoading] = React.useState(!isNew);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -146,6 +147,7 @@ export function ReminderFormScreen() {
         if (rec.repeat_count >= 1) setRepeatCount(String(rec.repeat_count));
         setStartAt(parseUTC(rec.start_at));
         setLastError(rec.last_error ?? '');
+        setLastFired(rec.last_fired ?? '');
       } catch (err) {
         if (mounted) setError(describeError(err));
       } finally {
@@ -260,6 +262,16 @@ export function ReminderFormScreen() {
               <CmpCardTitle>{t('reminder.sectionReminder')}</CmpCardTitle>
             </CmpCardHeader>
             <CmpCardContent className="gap-4">
+              {lastFired ? (
+                <CmpText
+                  className={
+                    lastError ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'
+                  }>
+                  {lastError
+                    ? t('reminder.lastFailedAt', { date: formatLocal(lastFired) })
+                    : t('reminder.lastSentAt', { date: formatLocal(lastFired) })}
+                </CmpText>
+              ) : null}
               {lastError ? (
                 <CmpText className="text-sm text-destructive">
                   {t('reminder.lastSendFailed', { error: lastError })}

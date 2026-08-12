@@ -34,7 +34,9 @@
     "paused": "Paused",
     "doneFired": "Done — fired {{count}}×",
     "next": "Next: {{date}}",
-    "lastSendFailed": "Last send failed: {{error}}"
+    "lastSendFailed": "Last send failed: {{error}}",
+    "lastFailedAt": "Failed: {{date}}",
+    "lastSentAt": "Sent: {{date}}"
   },
   "tags": {
     "title": "Tags",
@@ -132,7 +134,9 @@
     "priority5": "5 — Max",
     "deleteTitle": "Delete this reminder?",
     "deleteBody": "“{{title}}” will stop firing and cannot be recovered.",
-    "lastSendFailed": "Last send failed: {{error}}"
+    "lastSendFailed": "Last send failed: {{error}}",
+    "lastFailedAt": "Last attempt failed: {{date}}",
+    "lastSentAt": "Last sent: {{date}}"
   },
   "auth": {
     "login": "Log in",
