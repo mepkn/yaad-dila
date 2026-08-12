@@ -7,16 +7,15 @@ import { ReminderCard } from '@/features/reminders/reminder-card';
 import { SearchBar } from '@/features/reminders/search-bar';
 import { StatusFilter } from '@/features/reminders/status-filter';
 import { describeError } from '@/lib/errors';
-import { pb } from '@/lib/pb';
 import { consumeRemindersDirty } from '@/lib/reminders-dirty';
 import {
-  sortFor,
-  statusFilter,
+  isSearching,
+  listReminders,
+  setReminderActive,
   statusOf,
   type Reminder,
   type ReminderStatus,
 } from '@/lib/reminders';
-import { buildSearchFilter, parseSearchQuery } from '@/lib/search';
 import { Link, useFocusEffect } from 'expo-router';
 import { PlusIcon } from 'lucide-react-native';
 import * as React from 'react';
@@ -24,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const PAGE_SIZE = 30;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function RemindersListScreen() {
@@ -49,52 +47,38 @@ export function RemindersListScreen() {
   // a slow reply for an old query can never overwrite newer results.
   const requestId = React.useRef(0);
 
-  const parsedQuery = React.useMemo(() => parseSearchQuery(debouncedQuery), [debouncedQuery]);
-  const searching = parsedQuery.tags.length > 0 || parsedQuery.text.length > 0;
+  const searching = isSearching(debouncedQuery);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query]);
 
-  const filter = React.useMemo(
-    () => [statusFilter(status), buildSearchFilter(parsedQuery)].filter(Boolean).join(' && '),
-    [status, parsedQuery]
-  );
-
   const fetchPage = React.useCallback(
     async (pageNum: number, replace: boolean) => {
       const ticket = ++requestId.current;
       try {
-        const result = await pb.collection('reminders').getList<Reminder>(pageNum, PAGE_SIZE, {
-          filter,
-          sort: sortFor(status),
-          expand: 'tags',
-          // We only need "is there another page", which the short-page check
-          // below answers — skipping the COUNT query makes each fetch cheaper.
-          skipTotal: true,
-          // Without an explicit key the SDK dedupes by method+path, so a page
-          // append and a refresh would abort each other with status 0 (the
-          // hazard documented in lib/tags.ts). Distinct keys keep them apart,
-          // while a new search reusing 'reminders-list' cancels the stale one
-          // on purpose.
-          requestKey: replace ? 'reminders-list' : 'reminders-page',
+        const result = await listReminders({
+          page: pageNum,
+          status,
+          query: debouncedQuery,
+          append: !replace,
         });
 
+        // null means the request was aborted in favour of a newer one.
+        if (!result) return;
         if (ticket !== requestId.current) return;
 
         page.current = pageNum;
-        setHasMore(result.items.length === PAGE_SIZE);
+        setHasMore(result.hasMore);
         setReminders((prev) => (replace ? result.items : [...prev, ...result.items]));
         setError(null);
       } catch (err) {
-        // An abort is this code cancelling itself, not a failure to report.
-        if ((err as { isAbort?: boolean })?.isAbort) return;
         if (ticket !== requestId.current) return;
         setError(describeError(err));
       }
     },
-    [filter, status]
+    [status, debouncedQuery]
   );
 
   const reload = React.useCallback(() => {
@@ -142,7 +126,7 @@ export function RemindersListScreen() {
     // and throw away the user's scroll position.
     setReminders((prev) => prev.map((r) => (r.id === reminder.id ? { ...r, active } : r)));
     try {
-      await pb.collection('reminders').update(reminder.id, { active });
+      await setReminderActive(reminder.id, active);
       // Only drop the row once the server has agreed. Removing it optimistically
       // would mean a failed update has to re-insert it at the right position,
       // which a map() can no longer do.

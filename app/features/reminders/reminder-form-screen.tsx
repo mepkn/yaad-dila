@@ -32,16 +32,16 @@ import { CmpTextarea } from '@/components/cmp/cmp-textarea';
 import { useFabBottom, useFabContentPadding } from '@/features/reminders/fab-layout';
 import { TagInput } from '@/features/reminders/tag-input';
 import { describeError } from '@/lib/errors';
-import { pb } from '@/lib/pb';
 import {
+  deleteReminder,
   formatLocal,
+  getReminder,
   parseUTC,
+  saveReminder,
   type IntervalUnit,
-  type Reminder,
   type RepeatMode,
 } from '@/lib/reminders';
-import { markRemindersDirty } from '@/lib/reminders-dirty';
-import { listTags, resolveTagIds, type SelectedTag, type Tag } from '@/lib/tags';
+import { listTags, type SelectedTag, type Tag } from '@/lib/tags';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
@@ -130,7 +130,7 @@ export function ReminderFormScreen() {
     let mounted = true;
     (async () => {
       try {
-        const rec = await pb.collection('reminders').getOne<Reminder>(id, { expand: 'tags' });
+        const rec = await getReminder(id);
         if (!mounted) return;
         setTitle(rec.title);
         setMessage(rec.message);
@@ -182,27 +182,21 @@ export function ReminderFormScreen() {
     setBusy(true);
     setError(null);
     try {
-      const tagIds = await resolveTagIds(tags);
-      const data: Record<string, unknown> = {
-        user: pb.authStore.record?.id,
-        title: title.trim(),
-        message: message.trim(),
-        note,
-        tags: tagIds,
-        priority: Number(priority),
-        interval_n: Number(intervalN),
-        interval_unit: intervalUnit,
-        repeat_mode: repeatMode,
-        repeat_count: repeatMode === 'count' ? Number(repeatCount) : 0,
-        // Local Date → UTC ISO string. The backend computes next_fire.
-        start_at: startAt.toISOString(),
-      };
-      if (isNew) {
-        await pb.collection('reminders').create(data);
-      } else {
-        await pb.collection('reminders').update(id, data);
-      }
-      markRemindersDirty();
+      await saveReminder(
+        {
+          title,
+          message,
+          note,
+          tags,
+          priority: Number(priority),
+          interval_n: Number(intervalN),
+          interval_unit: intervalUnit,
+          repeat_mode: repeatMode,
+          repeat_count: Number(repeatCount),
+          start_at: startAt,
+        },
+        isNew ? undefined : id
+      );
       router.back();
     } catch (err) {
       setError(describeError(err));
@@ -214,8 +208,7 @@ export function ReminderFormScreen() {
     setBusy(true);
     setError(null);
     try {
-      await pb.collection('reminders').delete(id);
-      markRemindersDirty();
+      await deleteReminder(id);
       router.back();
     } catch (err) {
       setError(describeError(err));
