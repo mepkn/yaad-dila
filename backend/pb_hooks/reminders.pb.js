@@ -112,6 +112,10 @@ cronAdd("checkReminders", "* * * * *", () => {
           .error("checkReminders: send failed", "reminder", r.id, "error", String(sendErr));
       }
 
+      // The time we actually attempted the send, not the time it was due —
+      // if a tick runs late, the user should be able to see that it did.
+      r.set("last_fired", new Date().toISOString());
+
       const firedCount = r.getInt("fired_count") + 1;
       r.set("fired_count", firedCount);
 

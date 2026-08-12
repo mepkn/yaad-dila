@@ -52,22 +52,24 @@ export default function RootLayout() {
 
   return (
     <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      {ready ? (
-        <Stack>
-          <Stack.Protected guard={loggedIn}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="settings" />
-            <Stack.Screen name="reminder/[id]" />
-          </Stack.Protected>
-          <Stack.Protected guard={!loggedIn}>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          </Stack.Protected>
-        </Stack>
-      ) : null}
-      <PortalHost />
-    </ThemeProvider>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        {ready ? (
+          <Stack>
+            <Stack.Protected guard={loggedIn}>
+              {/* The tab navigator draws its own bar; a root header above it
+                would be a second, redundant chrome layer. */}
+              {/* The reminder form lives inside the Home tab, not here, so the
+                  tab bar stays visible while it is open. */}
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack.Protected>
+            <Stack.Protected guard={!loggedIn}>
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            </Stack.Protected>
+          </Stack>
+        ) : null}
+        <PortalHost />
+      </ThemeProvider>
     </KeyboardProvider>
   );
 }

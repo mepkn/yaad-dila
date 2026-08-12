@@ -13,3 +13,4 @@ SPEC.md
 skills-lock.json
 backend/pb_data
 backend/pocketbase
+.dex/tasks.jsonl
