@@ -92,7 +92,10 @@ export function TagInput({
           blurOnSubmit={false}
           editable={editable}
           placeholder={value.length === 0 ? placeholder : undefined}
-          className="h-8 min-w-32 flex-1 border-0 bg-transparent px-1 py-0 shadow-none"
+          // dark:bg-transparent as well: the base input carries `dark:bg-input/30`,
+          // which a plain utility can't cancel, so in dark mode the field would
+          // paint grey over part of the container it sits in.
+          className="h-8 min-w-32 flex-1 border-0 bg-transparent px-1 py-0 shadow-none dark:bg-transparent"
         />
       </View>
       {showOptions ? (
