@@ -34,14 +34,18 @@ import { TagInput } from '@/features/reminders/tag-input';
 import { describeError } from '@/lib/errors';
 import {
   deleteReminder,
+  draftFromParsed,
+  draftFromRecord,
+  emptyDraft,
   formatLocal,
   getReminder,
-  parseUTC,
+  isDraftValid,
   saveReminder,
   type IntervalUnit,
+  type ReminderDraft,
   type RepeatMode,
 } from '@/lib/reminders';
-import { listTags, type SelectedTag, type Tag } from '@/lib/tags';
+import { listTags, type Tag } from '@/lib/tags';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
@@ -88,17 +92,10 @@ export function ReminderFormScreen() {
   const isNew = id === 'new';
   const router = useRouter();
 
-  const [title, setTitle] = React.useState('');
-  const [message, setMessage] = React.useState('');
-  const [note, setNote] = React.useState('');
-  const [tags, setTags] = React.useState<SelectedTag[]>([]);
+  // The whole reminder is one value. Everything below it is screen state, not
+  // part of the reminder.
+  const [draft, setDraft] = React.useState<ReminderDraft>(emptyDraft);
   const [allTags, setAllTags] = React.useState<Tag[]>([]);
-  const [priority, setPriority] = React.useState('3');
-  const [intervalN, setIntervalN] = React.useState('1');
-  const [intervalUnit, setIntervalUnit] = React.useState<IntervalUnit>('days');
-  const [repeatMode, setRepeatMode] = React.useState<RepeatMode>('once');
-  const [repeatCount, setRepeatCount] = React.useState('2');
-  const [startAt, setStartAt] = React.useState<Date>(() => new Date());
   const [showIosPicker, setShowIosPicker] = React.useState(false);
   const [lastError, setLastError] = React.useState('');
   const [lastFired, setLastFired] = React.useState('');
@@ -109,6 +106,11 @@ export function ReminderFormScreen() {
   // existing reminder that already uses any of them opens it once, on load, so those
   // values are never hidden from the person who set them.
   const [moreOpen, setMoreOpen] = React.useState(false);
+
+  // One updater for every input: no field gets its own setter to forget.
+  function update<K extends keyof ReminderDraft>(key: K, value: ReminderDraft[K]) {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+  }
 
   React.useEffect(() => {
     let mounted = true;
@@ -132,20 +134,11 @@ export function ReminderFormScreen() {
       try {
         const rec = await getReminder(id);
         if (!mounted) return;
-        setTitle(rec.title);
-        setMessage(rec.message);
-        const recNote = rec.note ?? '';
-        const recTags = (rec.expand?.tags ?? []).map((tag) => ({ id: tag.id, name: tag.name }));
-        const recPriority = String(rec.priority || 3);
-        setNote(recNote);
-        setTags(recTags);
-        setPriority(recPriority);
-        if (recNote.trim() || recTags.length > 0 || recPriority !== '3') setMoreOpen(true);
-        setIntervalN(String(rec.interval_n));
-        setIntervalUnit(rec.interval_unit);
-        setRepeatMode(rec.repeat_mode);
-        if (rec.repeat_count >= 1) setRepeatCount(String(rec.repeat_count));
-        setStartAt(parseUTC(rec.start_at));
+        const loaded = draftFromRecord(rec);
+        setDraft(loaded);
+        if (loaded.note.trim() || loaded.tags.length > 0 || loaded.priority !== '3') {
+          setMoreOpen(true);
+        }
         setLastError(rec.last_error ?? '');
         setLastFired(rec.last_fired ?? '');
       } catch (err) {
@@ -163,13 +156,13 @@ export function ReminderFormScreen() {
   function onPickStartAt() {
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
-        value: startAt,
+        value: draft.start_at,
         mode: 'date',
         onValueChange: (_event, date) => {
           DateTimePickerAndroid.open({
             value: date,
             mode: 'time',
-            onValueChange: (_timeEvent, dateTime) => setStartAt(dateTime),
+            onValueChange: (_timeEvent, dateTime) => update('start_at', dateTime),
           });
         },
       });
@@ -182,21 +175,7 @@ export function ReminderFormScreen() {
     setBusy(true);
     setError(null);
     try {
-      await saveReminder(
-        {
-          title,
-          message,
-          note,
-          tags,
-          priority: Number(priority),
-          interval_n: Number(intervalN),
-          interval_unit: intervalUnit,
-          repeat_mode: repeatMode,
-          repeat_count: Number(repeatCount),
-          start_at: startAt,
-        },
-        isNew ? undefined : id
-      );
+      await saveReminder(draft, isNew ? undefined : id);
       router.back();
     } catch (err) {
       setError(describeError(err));
@@ -217,22 +196,10 @@ export function ReminderFormScreen() {
   }
 
   function onVoiceParsed(parsed: ParsedReminder) {
-    setTitle(parsed.title);
-    setMessage(parsed.message);
-    setIntervalN(String(parsed.interval_n));
-    setIntervalUnit(parsed.interval_unit);
-    setRepeatMode(parsed.repeat_mode);
-    if (parsed.repeat_count >= 1) setRepeatCount(String(parsed.repeat_count));
-    setStartAt(parsed.start_at);
+    setDraft((prev) => draftFromParsed(prev, parsed));
   }
 
-  const canSave =
-    !loading &&
-    !busy &&
-    title.trim().length > 0 &&
-    message.trim().length > 0 &&
-    Number(intervalN) >= 1 &&
-    (repeatMode !== 'count' || Number(repeatCount) >= 1);
+  const canSave = !loading && !busy && isDraftValid(draft);
 
   return (
     <>
@@ -274,8 +241,8 @@ export function ReminderFormScreen() {
                 <CmpLabel nativeID="title">{t('reminder.titleLabel')}</CmpLabel>
                 <CmpInput
                   aria-labelledby="title"
-                  value={title}
-                  onChangeText={setTitle}
+                  value={draft.title}
+                  onChangeText={(v) => update('title', v)}
                   placeholder={t('reminder.titlePlaceholder')}
                   editable={!loading}
                 />
@@ -284,8 +251,8 @@ export function ReminderFormScreen() {
                 <CmpLabel nativeID="message">{t('reminder.messageLabel')}</CmpLabel>
                 <CmpTextarea
                   aria-labelledby="message"
-                  value={message}
-                  onChangeText={setMessage}
+                  value={draft.message}
+                  onChangeText={(v) => update('message', v)}
                   placeholder={t('reminder.messagePlaceholder')}
                   editable={!loading}
                 />
@@ -301,14 +268,14 @@ export function ReminderFormScreen() {
               <View className="gap-1.5">
                 <CmpLabel>{t('reminder.starts')}</CmpLabel>
                 <CmpButton variant="outline" onPress={onPickStartAt} disabled={loading}>
-                  <CmpText>{formatLocal(startAt.toISOString())}</CmpText>
+                  <CmpText>{formatLocal(draft.start_at.toISOString())}</CmpText>
                 </CmpButton>
                 {showIosPicker && Platform.OS === 'ios' ? (
                   <DateTimePicker
-                    value={startAt}
+                    value={draft.start_at}
                     mode="datetime"
                     display="spinner"
-                    onValueChange={(_event, date) => setStartAt(date)}
+                    onValueChange={(_event, date) => update('start_at', date)}
                   />
                 ) : null}
               </View>
@@ -317,8 +284,8 @@ export function ReminderFormScreen() {
                   <CmpLabel nativeID="interval_n">{t('reminder.every')}</CmpLabel>
                   <CmpInput
                     aria-labelledby="interval_n"
-                    value={intervalN}
-                    onChangeText={setIntervalN}
+                    value={draft.interval_n}
+                    onChangeText={(v) => update('interval_n', v)}
                     keyboardType="number-pad"
                     editable={!loading}
                   />
@@ -326,9 +293,9 @@ export function ReminderFormScreen() {
                 <View className="flex-[2] gap-1.5">
                   <CmpLabel nativeID="interval_unit">{t('reminder.unit')}</CmpLabel>
                   <CmpSelect
-                    value={unitOptions.find((o) => o.value === intervalUnit)}
+                    value={unitOptions.find((o) => o.value === draft.interval_unit)}
                     onValueChange={(option) => {
-                      if (option) setIntervalUnit(option.value as IntervalUnit);
+                      if (option) update('interval_unit', option.value as IntervalUnit);
                     }}>
                     <CmpSelectTrigger aria-labelledby="interval_unit">
                       <CmpSelectValue placeholder={t('reminder.unit')} />
@@ -344,9 +311,9 @@ export function ReminderFormScreen() {
               <View className="gap-1.5">
                 <CmpLabel nativeID="repeat_mode">{t('reminder.repeat')}</CmpLabel>
                 <CmpSelect
-                  value={repeatOptions.find((o) => o.value === repeatMode)}
+                  value={repeatOptions.find((o) => o.value === draft.repeat_mode)}
                   onValueChange={(option) => {
-                    if (option) setRepeatMode(option.value as RepeatMode);
+                    if (option) update('repeat_mode', option.value as RepeatMode);
                   }}>
                   <CmpSelectTrigger aria-labelledby="repeat_mode">
                     <CmpSelectValue placeholder={t('reminder.repeat')} />
@@ -358,13 +325,13 @@ export function ReminderFormScreen() {
                   </CmpSelectContent>
                 </CmpSelect>
               </View>
-              {repeatMode === 'count' ? (
+              {draft.repeat_mode === 'count' ? (
                 <View className="gap-1.5">
                   <CmpLabel nativeID="repeat_count">{t('reminder.totalFires')}</CmpLabel>
                   <CmpInput
                     aria-labelledby="repeat_count"
-                    value={repeatCount}
-                    onChangeText={setRepeatCount}
+                    value={draft.repeat_count}
+                    onChangeText={(v) => update('repeat_count', v)}
                     keyboardType="number-pad"
                     editable={!loading}
                   />
@@ -395,8 +362,8 @@ export function ReminderFormScreen() {
                     <CmpLabel nativeID="note">{t('reminder.noteLabel')}</CmpLabel>
                     <CmpTextarea
                       aria-labelledby="note"
-                      value={note}
-                      onChangeText={setNote}
+                      value={draft.note}
+                      onChangeText={(v) => update('note', v)}
                       placeholder={t('reminder.notePlaceholder')}
                       editable={!loading}
                     />
@@ -404,8 +371,8 @@ export function ReminderFormScreen() {
                   <View className="gap-1.5">
                     <CmpLabel nativeID="tags">{t('reminder.tagsLabel')}</CmpLabel>
                     <TagInput
-                      value={tags}
-                      onChange={setTags}
+                      value={draft.tags}
+                      onChange={(v) => update('tags', v)}
                       available={allTags}
                       placeholder={t('reminder.tagsPlaceholder')}
                       editable={!loading}
@@ -414,9 +381,9 @@ export function ReminderFormScreen() {
                   <View className="gap-1.5">
                     <CmpLabel nativeID="priority">{t('reminder.priority')}</CmpLabel>
                     <CmpSelect
-                      value={priorityOptions.find((o) => o.value === priority)}
+                      value={priorityOptions.find((o) => o.value === draft.priority)}
                       onValueChange={(option) => {
-                        if (option) setPriority(option.value);
+                        if (option) update('priority', option.value);
                       }}>
                       <CmpSelectTrigger aria-labelledby="priority">
                         <CmpSelectValue placeholder={t('reminder.priority')} />
@@ -451,7 +418,7 @@ export function ReminderFormScreen() {
                   <CmpAlertDialogHeader>
                     <CmpAlertDialogTitle>{t('reminder.deleteTitle')}</CmpAlertDialogTitle>
                     <CmpAlertDialogDescription>
-                      {t('reminder.deleteBody', { title })}
+                      {t('reminder.deleteBody', { title: draft.title })}
                     </CmpAlertDialogDescription>
                   </CmpAlertDialogHeader>
                   <CmpAlertDialogFooter>

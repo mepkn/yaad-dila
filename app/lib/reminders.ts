@@ -8,6 +8,7 @@
  * rules, the abort quirk, and the dirty flag are implementation details and stay
  * private: they are the facts this module exists to stop every screen relearning.
  */
+import type { ParsedReminder } from '@/lib/gemini';
 import i18n from '@/lib/i18n';
 import { pb } from '@/lib/pb';
 import { markRemindersDirty } from '@/lib/reminders-dirty';
@@ -221,22 +222,95 @@ export function getReminder(id: string): Promise<Reminder> {
   return pb.collection('reminders').getOne<Reminder>(id, { expand: 'tags' });
 }
 
-// What a screen supplies to create or update a reminder. Server-owned fields
+// --- The draft ----------------------------------------------------------
+// A reminder as the form holds it while the user edits it. Server-owned fields
 // (next_fire, fired_count, active, last_fired, last_error) are absent by design:
 // the backend computes them and an app write would fight the cron tick.
+//
+// Numbers are held as text because a number input must accept an empty box
+// mid-typing. Every conversion to a real number happens in saveReminder, so no
+// screen calls Number() and no screen decides what an empty box means.
 export interface ReminderDraft {
   title: string;
   message: string;
   note: string;
   // Tags the user picked; ones without an id are created on save.
   tags: SelectedTag[];
-  priority: number;
-  interval_n: number;
+  priority: string;
+  interval_n: string;
   interval_unit: IntervalUnit;
   repeat_mode: RepeatMode;
-  repeat_count: number;
+  repeat_count: string;
   // Device-local; stored as UTC (SPEC §5.4).
   start_at: Date;
+}
+
+const DEFAULT_PRIORITY = '3';
+
+export function emptyDraft(): ReminderDraft {
+  return {
+    title: '',
+    message: '',
+    note: '',
+    tags: [],
+    priority: DEFAULT_PRIORITY,
+    interval_n: '1',
+    interval_unit: 'days',
+    repeat_mode: 'once',
+    repeat_count: '2',
+    start_at: new Date(),
+  };
+}
+
+/** The one place a stored reminder becomes an editable draft. */
+export function draftFromRecord(r: Reminder): ReminderDraft {
+  const empty = emptyDraft();
+  return {
+    title: r.title,
+    message: r.message,
+    note: r.note ?? '',
+    tags: (r.expand?.tags ?? []).map((tag) => ({ id: tag.id, name: tag.name })),
+    priority: String(r.priority || DEFAULT_PRIORITY),
+    interval_n: String(r.interval_n),
+    interval_unit: r.interval_unit,
+    repeat_mode: r.repeat_mode,
+    // The backend zeroes repeat_count outside "count" mode, and an empty box is
+    // not an editable starting point — keep the default so switching to "count"
+    // lands on a usable number.
+    repeat_count: r.repeat_count >= 1 ? String(r.repeat_count) : empty.repeat_count,
+    start_at: parseUTC(r.start_at),
+  };
+}
+
+/**
+ * A voice parse folded into the draft.
+ *
+ * Only the fields Gemini returns are replaced; note, tags and priority stay as
+ * the user left them, since the parse never speaks about them.
+ */
+export function draftFromParsed(draft: ReminderDraft, parsed: ParsedReminder): ReminderDraft {
+  return {
+    ...draft,
+    title: parsed.title,
+    message: parsed.message,
+    interval_n: String(parsed.interval_n),
+    interval_unit: parsed.interval_unit,
+    repeat_mode: parsed.repeat_mode,
+    repeat_count: parsed.repeat_count >= 1 ? String(parsed.repeat_count) : draft.repeat_count,
+    start_at: parsed.start_at,
+  };
+}
+
+/** The same conditions the backend validates, checked before a round-trip. */
+export function isDraftValid(draft: ReminderDraft): boolean {
+  if (draft.title.trim() === '' || draft.message.trim() === '') return false;
+  // An empty or non-numeric box reads as 0, which fails this the same way a
+  // typed 0 does.
+  const intervalN = Number(draft.interval_n);
+  if (!Number.isFinite(intervalN) || intervalN < 1) return false;
+  if (draft.repeat_mode !== 'count') return true;
+  const repeatCount = Number(draft.repeat_count);
+  return Number.isFinite(repeatCount) && repeatCount >= 1;
 }
 
 /** Creates when `id` is omitted, updates otherwise. */
@@ -249,13 +323,13 @@ export async function saveReminder(draft: ReminderDraft, id?: string): Promise<R
     // Resolving may create tags; it runs serially and retries on the unique
     // constraint, both of which the caller should never have to know about.
     tags: await resolveTagIds(draft.tags),
-    priority: draft.priority,
-    interval_n: draft.interval_n,
+    priority: Number(draft.priority),
+    interval_n: Number(draft.interval_n),
     interval_unit: draft.interval_unit,
     repeat_mode: draft.repeat_mode,
     // A count is meaningless in the other modes; storing a stale one would show
     // up again if the user switched back to "count".
-    repeat_count: draft.repeat_mode === 'count' ? draft.repeat_count : 0,
+    repeat_count: draft.repeat_mode === 'count' ? Number(draft.repeat_count) : 0,
     // The backend computes next_fire from this.
     start_at: draft.start_at.toISOString(),
   };
