@@ -29,12 +29,12 @@ import {
 } from '@/components/cmp/cmp-select';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { changePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth';
-import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
 import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
 import { getStoredGeminiKey, setStoredGeminiKey } from '@/lib/gemini';
 import { LANGUAGE_OPTIONS, setAppLanguage } from '@/lib/i18n';
 import { type AppLanguage } from '@/lib/locale-preference';
+import { useAction } from '@/lib/use-action';
 import {
   getStoredTheme,
   setStoredTheme,
@@ -82,22 +82,11 @@ export function SettingsScreen() {
   // NativeWind only ever reports the resolved scheme, so a select bound to it
   // would show "Light" the moment you picked "System".
   const [theme, setTheme] = React.useState<AppTheme>('system');
-  const [geminiStatus, setGeminiStatus] = React.useState<{
-    kind: 'ok' | 'error';
-    text: string;
-  } | null>(null);
   const [currentPassword, setCurrentPassword] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [passwordOpen, setPasswordOpen] = React.useState(false);
-  const [passwordBusy, setPasswordBusy] = React.useState(false);
-  const [passwordStatus, setPasswordStatus] = React.useState<{
-    kind: 'ok' | 'error';
-    text: string;
-  } | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [busy, setBusy] = React.useState(false);
-  const [status, setStatus] = React.useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
@@ -142,10 +131,8 @@ export function SettingsScreen() {
     };
   }
 
-  async function onSave() {
-    setBusy(true);
-    setStatus(null);
-    try {
+  const saveConfig = useAction(
+    async () => {
       const data = { ...currentSettings(), user: pb.authStore.record?.id };
       if (recordId) {
         await pb.collection('ntfy_config').update(recordId, data);
@@ -153,63 +140,50 @@ export function SettingsScreen() {
         const rec = await pb.collection('ntfy_config').create(data);
         setRecordId(rec.id);
       }
-      setStatus({ kind: 'ok', text: t('settings.saved') });
-    } catch (err) {
-      setStatus({ kind: 'error', text: describeError(err) });
-    } finally {
-      setBusy(false);
-    }
-  }
+    },
+    { success: t('settings.saved') }
+  );
 
-  async function onSaveGeminiKey() {
-    setGeminiStatus(null);
-    try {
-      await setStoredGeminiKey(geminiKey.trim());
-      setGeminiStatus({ kind: 'ok', text: t('settings.saved') });
-    } catch (err) {
-      setGeminiStatus({ kind: 'error', text: describeError(err) });
-    }
-  }
+  const sendTest = useAction(() => sendTestNotification(currentSettings()), {
+    success: t('settings.testSent'),
+  });
 
-  async function onSendTest() {
-    setBusy(true);
-    setStatus(null);
-    try {
-      await sendTestNotification(currentSettings());
-      setStatus({ kind: 'ok', text: t('settings.testSent') });
-    } catch (err) {
-      setStatus({ kind: 'error', text: describeError(err) });
-    } finally {
-      setBusy(false);
-    }
-  }
+  const saveGeminiKey = useAction(() => setStoredGeminiKey(geminiKey.trim()), {
+    success: t('settings.saved'),
+  });
 
-  async function onChangePassword() {
-    // Cheap checks first — no point spending a round-trip on a typo.
-    if (newPassword !== confirmPassword) {
-      setPasswordStatus({ kind: 'error', text: t('settings.passwordMismatch') });
-      return;
-    }
-    if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      setPasswordStatus({
-        kind: 'error',
-        text: t('settings.passwordTooShort', { min: MIN_PASSWORD_LENGTH }),
-      });
-      return;
-    }
-    setPasswordBusy(true);
-    setPasswordStatus(null);
-    try {
+  const changeUserPassword = useAction(
+    async () => {
+      // Cheap checks first — no point spending a round-trip on a typo. Thrown
+      // rather than returned early: describeError passes a plain Error's
+      // message straight through, so these read like any other failure.
+      if (newPassword !== confirmPassword) {
+        throw new Error(t('settings.passwordMismatch'));
+      }
+      if (newPassword.length < MIN_PASSWORD_LENGTH) {
+        throw new Error(t('settings.passwordTooShort', { min: MIN_PASSWORD_LENGTH }));
+      }
       await changePassword(currentPassword, newPassword);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setPasswordStatus({ kind: 'ok', text: t('settings.passwordChanged') });
-    } catch (err) {
-      setPasswordStatus({ kind: 'error', text: describeError(err) });
-    } finally {
-      setPasswordBusy(false);
-    }
+    },
+    { success: t('settings.passwordChanged') }
+  );
+
+  // The ntfy card shows one status line for both of its buttons, so whichever
+  // runs takes the line over from the other.
+  const ntfyBusy = saveConfig.busy || sendTest.busy;
+  const ntfyStatus = saveConfig.status ?? sendTest.status;
+
+  function onSave() {
+    sendTest.clear();
+    saveConfig.run();
+  }
+
+  function onSendTest() {
+    saveConfig.clear();
+    sendTest.run();
   }
 
   function onChangeTheme(next: AppTheme) {
@@ -310,21 +284,21 @@ export function SettingsScreen() {
               </View>
             </>
           ) : null}
-          {status ? (
+          {ntfyStatus ? (
             <CmpText
               className={
-                status.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
+                ntfyStatus.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
               }>
-              {status.text}
+              {ntfyStatus.text}
             </CmpText>
           ) : null}
-          <CmpButton onPress={onSave} disabled={busy || loading || !baseUrl || !topic}>
-            <CmpText>{busy ? t('common.working') : t('common.save')}</CmpText>
+          <CmpButton onPress={onSave} disabled={ntfyBusy || loading || !baseUrl || !topic}>
+            <CmpText>{ntfyBusy ? t('common.working') : t('common.save')}</CmpText>
           </CmpButton>
           <CmpButton
             variant="secondary"
             onPress={onSendTest}
-            disabled={busy || loading || !baseUrl || !topic}>
+            disabled={ntfyBusy || loading || !baseUrl || !topic}>
             <CmpText>{t('settings.sendTest')}</CmpText>
           </CmpButton>
         </CmpCardContent>
@@ -349,15 +323,17 @@ export function SettingsScreen() {
               {t('settings.geminiKeyHint')}
             </CmpText>
           </View>
-          {geminiStatus ? (
+          {saveGeminiKey.status ? (
             <CmpText
               className={
-                geminiStatus.kind === 'ok' ? 'text-sm text-green-600' : 'text-sm text-destructive'
+                saveGeminiKey.status.kind === 'ok'
+                  ? 'text-sm text-green-600'
+                  : 'text-sm text-destructive'
               }>
-              {geminiStatus.text}
+              {saveGeminiKey.status.text}
             </CmpText>
           ) : null}
-          <CmpButton variant="secondary" onPress={onSaveGeminiKey}>
+          <CmpButton variant="secondary" onPress={saveGeminiKey.run}>
             <CmpText>{t('settings.saveGeminiKey')}</CmpText>
           </CmpButton>
         </CmpCardContent>
@@ -465,22 +441,24 @@ export function SettingsScreen() {
                     placeholder="••••••••"
                   />
                 </View>
-                {passwordStatus ? (
+                {changeUserPassword.status ? (
                   <CmpText
                     className={
-                      passwordStatus.kind === 'ok'
+                      changeUserPassword.status.kind === 'ok'
                         ? 'text-sm text-green-600'
                         : 'text-sm text-destructive'
                     }>
-                    {passwordStatus.text}
+                    {changeUserPassword.status.text}
                   </CmpText>
                 ) : null}
                 <CmpButton
                   variant="secondary"
-                  onPress={onChangePassword}
-                  disabled={passwordBusy || !currentPassword || !newPassword || !confirmPassword}>
+                  onPress={changeUserPassword.run}
+                  disabled={
+                    changeUserPassword.busy || !currentPassword || !newPassword || !confirmPassword
+                  }>
                   <CmpText>
-                    {passwordBusy ? t('common.working') : t('settings.changePassword')}
+                    {changeUserPassword.busy ? t('common.working') : t('settings.changePassword')}
                   </CmpText>
                 </CmpButton>
               </View>

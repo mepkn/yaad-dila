@@ -46,6 +46,7 @@ import {
   type RepeatMode,
 } from '@/lib/reminders';
 import { listTags, type Tag } from '@/lib/tags';
+import { useAction } from '@/lib/use-action';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
@@ -100,8 +101,7 @@ export function ReminderFormScreen() {
   const [lastError, setLastError] = React.useState('');
   const [lastFired, setLastFired] = React.useState('');
   const [loading, setLoading] = React.useState(!isNew);
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
   // Note / tags / priority are rarely touched, so the section starts closed. Editing an
   // existing reminder that already uses any of them opens it once, on load, so those
   // values are never hidden from the person who set them.
@@ -142,7 +142,7 @@ export function ReminderFormScreen() {
         setLastError(rec.last_error ?? '');
         setLastFired(rec.last_fired ?? '');
       } catch (err) {
-        if (mounted) setError(describeError(err));
+        if (mounted) setLoadError(describeError(err));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -171,29 +171,26 @@ export function ReminderFormScreen() {
     }
   }
 
-  async function onSave() {
-    setBusy(true);
-    setError(null);
-    try {
+  // Both navigate away on success, so both stay busy: releasing the button
+  // during the transition invites a second press on work already done.
+  const save = useAction(
+    async () => {
       await saveReminder(draft, isNew ? undefined : id);
       router.back();
-    } catch (err) {
-      setError(describeError(err));
-      setBusy(false);
-    }
-  }
+    },
+    { keepBusyOnSuccess: true }
+  );
 
-  async function onDelete() {
-    setBusy(true);
-    setError(null);
-    try {
+  const remove = useAction(
+    async () => {
       await deleteReminder(id);
       router.back();
-    } catch (err) {
-      setError(describeError(err));
-      setBusy(false);
-    }
-  }
+    },
+    { keepBusyOnSuccess: true }
+  );
+
+  const busy = save.busy || remove.busy;
+  const error = loadError ?? save.status?.text ?? remove.status?.text ?? null;
 
   function onVoiceParsed(parsed: ParsedReminder) {
     setDraft((prev) => draftFromParsed(prev, parsed));
@@ -402,7 +399,7 @@ export function ReminderFormScreen() {
 
           <View className="w-full max-w-sm gap-4">
             {error ? <CmpText className="text-sm text-destructive">{error}</CmpText> : null}
-            <CmpButton onPress={onSave} disabled={!canSave}>
+            <CmpButton onPress={save.run} disabled={!canSave}>
               <CmpText>
                 {busy ? t('common.working') : isNew ? t('reminder.create') : t('common.save')}
               </CmpText>
@@ -425,7 +422,7 @@ export function ReminderFormScreen() {
                     <CmpAlertDialogCancel>
                       <CmpText>{t('common.cancel')}</CmpText>
                     </CmpAlertDialogCancel>
-                    <CmpAlertDialogAction onPress={onDelete}>
+                    <CmpAlertDialogAction onPress={remove.run}>
                       <CmpText>{t('common.delete')}</CmpText>
                     </CmpAlertDialogAction>
                   </CmpAlertDialogFooter>
