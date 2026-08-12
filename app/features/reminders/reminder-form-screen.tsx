@@ -40,6 +40,7 @@ import {
   type Reminder,
   type RepeatMode,
 } from '@/lib/reminders';
+import { markRemindersDirty } from '@/lib/reminders-dirty';
 import { listTags, resolveTagIds, type SelectedTag, type Tag } from '@/lib/tags';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -199,6 +200,7 @@ export function ReminderFormScreen() {
       } else {
         await pb.collection('reminders').update(id, data);
       }
+      markRemindersDirty();
       router.back();
     } catch (err) {
       setError(describeError(err));
@@ -211,6 +213,7 @@ export function ReminderFormScreen() {
     setError(null);
     try {
       await pb.collection('reminders').delete(id);
+      markRemindersDirty();
       router.back();
     } catch (err) {
       setError(describeError(err));

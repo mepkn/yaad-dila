@@ -8,6 +8,7 @@ import { SearchBar } from '@/features/reminders/search-bar';
 import { StatusFilter } from '@/features/reminders/status-filter';
 import { describeError } from '@/lib/errors';
 import { pb } from '@/lib/pb';
+import { consumeRemindersDirty } from '@/lib/reminders-dirty';
 import {
   sortFor,
   statusFilter,
@@ -96,20 +97,29 @@ export function RemindersListScreen() {
     [filter, status]
   );
 
-  // Refetch from page 1 whenever the query shape changes, and on every focus so
-  // a create/edit/delete is always reflected. Focus-reload does reset scroll to
-  // the top; see HANDOFF.md for the dirty-flag upgrade if that becomes annoying.
+  const reload = React.useCallback(() => {
+    let active = true;
+    setLoading(true);
+    fetchPage(1, true).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [fetchPage]);
+
+  // First mount, and every time the query shape changes.
+  React.useEffect(reload, [reload]);
+
+  // On focus we only refetch when a mutation actually happened. Reloading on
+  // every focus would throw away the appended pages and the scroll position
+  // just because the user opened a reminder and came back. Server-side changes
+  // (a cron fire flipping a reminder to done) are picked up by pull-to-refresh.
   useFocusEffect(
     React.useCallback(() => {
-      let active = true;
-      setLoading(true);
-      fetchPage(1, true).finally(() => {
-        if (active) setLoading(false);
-      });
-      return () => {
-        active = false;
-      };
-    }, [fetchPage])
+      if (!consumeRemindersDirty()) return;
+      return reload();
+    }, [reload])
   );
 
   async function loadMore() {
