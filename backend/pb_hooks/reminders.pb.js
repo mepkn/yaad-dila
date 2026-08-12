@@ -119,6 +119,12 @@ cronAdd("checkReminders", "* * * * *", () => {
       const firedCount = r.getInt("fired_count") + 1;
       r.set("fired_count", firedCount);
 
+      // The completion rule, third copy. app/lib/reminders.ts declares it once
+      // for the app (COMPLETION) and derives both the card predicate and the
+      // list filter from it. This copy cannot import that — goja, and a
+      // separate deployable unit — so it is a declared seam: change the rule
+      // here and in app/lib/reminders.ts together, or a finished reminder
+      // stays active while the app already shows it as done.
       const repeatMode = r.getString("repeat_mode");
       if (repeatMode === "once") {
         r.set("active", false);
