@@ -1,6 +1,7 @@
 import { ClientResponseError } from 'pocketbase';
 
 import { pb } from '@/lib/pb';
+import { markRemindersDirty } from '@/lib/reminders-dirty';
 
 export interface Tag {
   id: string;
@@ -46,14 +47,20 @@ export function createTag(name: string): Promise<Tag> {
   });
 }
 
-export function renameTag(id: string, name: string): Promise<Tag> {
-  return pb.collection('tags').update<Tag>(id, { name: normalizeTagName(name) });
+// The list screen renders tag badges from `expand: 'tags'`, so a rename or a
+// delete changes what it shows — both mark the reminders list dirty so it
+// refetches the next time it focuses.
+export async function renameTag(id: string, name: string): Promise<Tag> {
+  const tag = await pb.collection('tags').update<Tag>(id, { name: normalizeTagName(name) });
+  markRemindersDirty();
+  return tag;
 }
 
 // PocketBase strips a deleted record's id out of every relation field that
 // referenced it, so the reminders themselves survive and simply lose the badge.
 export async function deleteTag(id: string): Promise<void> {
   await pb.collection('tags').delete(id);
+  markRemindersDirty();
 }
 
 export function normalizeTagName(value: string): string {
