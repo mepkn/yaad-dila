@@ -18,6 +18,8 @@ export interface Reminder {
   start_at: string;
   next_fire: string;
   active: boolean;
+  // Empty until the cron tick has attempted this reminder at least once.
+  last_fired: string;
   last_error: string;
   expand?: { tags?: Tag[] };
 }
