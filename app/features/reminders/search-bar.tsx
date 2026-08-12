@@ -23,7 +23,11 @@ export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) 
         // Tag tokens are lowercase codes — autocapitalise/autocorrect fight "#birthday".
         autoCapitalize="none"
         autoCorrect={false}
-        className="h-8 flex-1 border-0 bg-transparent px-0 py-0 shadow-none"
+        // dark:bg-transparent as well as bg-transparent: the base input carries
+        // `dark:bg-input/30`, and a plain utility can't cancel a dark variant —
+        // without this the input paints grey over the middle of the bar while
+        // the icon and the clear button stay on the container's background.
+        className="h-8 flex-1 border-0 bg-transparent px-0 py-0 shadow-none dark:bg-transparent"
       />
       {value.length > 0 ? (
         <CmpButton
