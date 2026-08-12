@@ -56,13 +56,40 @@ export function formatLocal(value: string): string {
   });
 }
 
+// --- The completion rule ------------------------------------------------
+// How many sends complete a reminder, declared once. Both readers below are
+// derived from this table: the in-memory predicate the cards use, and the
+// PocketBase filter the chips use. Add a repeat mode here and both follow.
+//
+// The cron tick in backend/pb_hooks/reminders.pb.js applies the same rule and
+// CANNOT import this — goja, separate deployable unit. That copy is a declared
+// seam, not an oversight; both sides point at each other.
+
+type CompletionTarget =
+  // No number of sends ever completes it ("forever", and any unset mode).
+  | { finite: false }
+  // `operand` is the target as a PocketBase field expression, `of` reads the
+  // same target from a record in memory. One entry, so they cannot diverge.
+  | { finite: true; operand: string; of: (r: Reminder) => number };
+
+const COMPLETION: Record<RepeatMode, CompletionTarget> = {
+  once: { finite: true, operand: '1', of: () => 1 },
+  count: { finite: true, operand: 'repeat_count', of: (r) => r.repeat_count },
+  forever: { finite: false },
+};
+
+const FINITE_MODES = (Object.keys(COMPLETION) as RepeatMode[]).filter(
+  (mode) => COMPLETION[mode].finite
+);
+
 // A reminder the engine deactivated after completing its schedule, as opposed
 // to one the user paused.
 export function isFinished(r: Reminder): boolean {
   if (r.active) return false;
-  if (r.repeat_mode === 'once') return r.fired_count >= 1;
-  if (r.repeat_mode === 'count') return r.fired_count >= r.repeat_count;
-  return false;
+  // An unset repeat_mode has no entry, so it is never finished.
+  const target = COMPLETION[r.repeat_mode] as CompletionTarget | undefined;
+  if (!target?.finite) return false;
+  return r.fired_count >= target.of(r);
 }
 
 export const REMINDER_STATUSES = ['all', 'upcoming', 'paused', 'past'] as const;
@@ -78,20 +105,33 @@ export function statusOf(r: Reminder): ReminderBucket {
   return isFinished(r) ? 'past' : 'paused';
 }
 
-// --- Server-side equivalents of isFinished()/statusOf() ------------------
+// --- Server-side form of the same rule -----------------------------------
 // The list is paginated, so bucketing happens in the PocketBase query, not in
-// memory. These MUST stay in sync with isFinished()/statusOf() above — if the
-// completion rule changes, change it in both places or the chips and the cards
-// will disagree about the same reminder.
+// memory. Both polarities are generated from COMPLETION, so they agree with
+// isFinished() by construction.
 
-const FINISHED =
-  '((repeat_mode = "once" && fired_count >= 1) || (repeat_mode = "count" && fired_count >= repeat_count))';
+/**
+ * The completion rule as a PocketBase filter.
+ *
+ * PocketBase has no group-level NOT, so `finished: false` cannot be written as
+ * !(finished). It is De Morgan'd here instead of by hand: every finite mode
+ * flips its comparison, and a leading clause covers the modes with no finite
+ * target — "forever" plus any unset repeat_mode — matching isFinished()'s
+ * `return false` for them.
+ */
+function completionFilter(finished: boolean): string {
+  const clauses = FINITE_MODES.map((mode) => {
+    const target = COMPLETION[mode];
+    if (!target.finite) return '';
+    return `(repeat_mode = "${mode}" && fired_count ${finished ? '>=' : '<'} ${target.operand})`;
+  });
 
-// PocketBase filters have no group-level NOT, so "not finished" is De Morgan'd
-// by hand rather than written as !(FINISHED). The first clause covers "forever"
-// plus any unset repeat_mode, matching isFinished()'s final `return false`.
-const NOT_FINISHED =
-  '((repeat_mode != "once" && repeat_mode != "count") || (repeat_mode = "once" && fired_count < 1) || (repeat_mode = "count" && fired_count < repeat_count))';
+  if (!finished) {
+    clauses.unshift(`(${FINITE_MODES.map((mode) => `repeat_mode != "${mode}"`).join(' && ')})`);
+  }
+
+  return `(${clauses.join(' || ')})`;
+}
 
 // Empty string means "no constraint" — dropped before joining.
 function statusFilter(status: ReminderStatus): string {
@@ -99,9 +139,9 @@ function statusFilter(status: ReminderStatus): string {
     case 'upcoming':
       return 'active = true';
     case 'past':
-      return `active = false && ${FINISHED}`;
+      return `active = false && ${completionFilter(true)}`;
     case 'paused':
-      return `active = false && ${NOT_FINISHED}`;
+      return `active = false && ${completionFilter(false)}`;
     default:
       return '';
   }
