@@ -16,6 +16,16 @@ import { describeError } from '@/lib/errors';
 
 export type ActionStatus = { kind: 'ok' | 'error'; text: string } | null;
 
+/**
+ * How long a success message stays on screen.
+ *
+ * Only success messages expire. An error is something the user still has to act
+ * on, and tab screens stay mounted — so a self-clearing "Saved." is the only
+ * thing standing between a confirmation and a message that outlives the form it
+ * described.
+ */
+const SUCCESS_MESSAGE_MS = 4000;
+
 export interface ActionOptions {
   /** Shown when the work resolves. Already translated — pass t('…'). */
   success?: string;
@@ -47,25 +57,49 @@ export function useAction<A extends unknown[]>(
   const latest = React.useRef({ work, options });
   latest.current = { work, options };
 
-  const run = React.useCallback(async (...args: A) => {
-    const { work: currentWork, options: currentOptions } = latest.current;
-    setBusy(true);
-    setStatus(null);
-    try {
-      await currentWork(...args);
-      setStatus(currentOptions.success ? { kind: 'ok', text: currentOptions.success } : null);
-      if (!currentOptions.keepBusyOnSuccess) setBusy(false);
-    } catch (err) {
-      // An abort is the SDK cancelling a superseded request, not a failure —
-      // report nothing and let the newer request speak.
-      if (!(err as { isAbort?: boolean })?.isAbort) {
-        setStatus({ kind: 'error', text: describeError(err) });
-      }
-      setBusy(false);
+  // Cancelling before every status change is what keeps a pending dismissal from
+  // wiping a NEWER message — the timer outlives the status it was scheduled for.
+  const dismissal = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelDismissal = React.useCallback(() => {
+    if (dismissal.current) {
+      clearTimeout(dismissal.current);
+      dismissal.current = null;
     }
   }, []);
 
-  const clear = React.useCallback(() => setStatus(null), []);
+  React.useEffect(() => cancelDismissal, [cancelDismissal]);
+
+  const run = React.useCallback(
+    async (...args: A) => {
+      const { work: currentWork, options: currentOptions } = latest.current;
+      cancelDismissal();
+      setBusy(true);
+      setStatus(null);
+      try {
+        await currentWork(...args);
+        if (currentOptions.success) {
+          setStatus({ kind: 'ok', text: currentOptions.success });
+          dismissal.current = setTimeout(() => setStatus(null), SUCCESS_MESSAGE_MS);
+        } else {
+          setStatus(null);
+        }
+        if (!currentOptions.keepBusyOnSuccess) setBusy(false);
+      } catch (err) {
+        // An abort is the SDK cancelling a superseded request, not a failure —
+        // report nothing and let the newer request speak.
+        if (!(err as { isAbort?: boolean })?.isAbort) {
+          setStatus({ kind: 'error', text: describeError(err) });
+        }
+        setBusy(false);
+      }
+    },
+    [cancelDismissal]
+  );
+
+  const clear = React.useCallback(() => {
+    cancelDismissal();
+    setStatus(null);
+  }, [cancelDismissal]);
 
   return { run, busy, status, clear };
 }

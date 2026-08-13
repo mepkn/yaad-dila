@@ -18,26 +18,25 @@ export function listTags(): Promise<Tag[]> {
   return pb.collection('tags').getFullList<Tag>({ sort: 'name' });
 }
 
+/** What the `tag_counts` view returns; `count` is the app-side name for it. */
+interface TagCountRow extends Tag {
+  reminder_count: number;
+}
+
 /**
- * Every tag plus how many reminders carry it.
+ * Every tag plus how many reminders carry it — one request, whatever the tag
+ * count.
  *
- * One count query per tag, each with its own `requestKey`. Without distinct
- * keys the SDK dedupes by method + path and the parallel counts abort each
- * other as status 0 — the same hazard documented on `resolveTagIds` below.
+ * This used to fetch the tags, then issue a per-tag count request in parallel.
+ * That fan-out degraded itself: measured against the request log, a lone count
+ * query costs ~4ms but nine racing ones cost ~156ms EACH, so a three-tag
+ * account spent ~490ms opening the screen. The `tag_counts` view does the same
+ * arithmetic in SQL (see the migration) and answers in one round trip.
  */
 export async function listTagsWithCounts(): Promise<TagWithCount[]> {
-  const tags = await listTags();
+  const rows = await pb.collection('tag_counts').getFullList<TagCountRow>({ sort: 'name' });
 
-  return Promise.all(
-    tags.map(async (tag) => {
-      const result = await pb.collection('reminders').getList(1, 1, {
-        filter: pb.filter('tags.id ?= {:id}', { id: tag.id }),
-        fields: 'id',
-        requestKey: `tag-count-${tag.id}`,
-      });
-      return { ...tag, count: result.totalItems };
-    })
-  );
+  return rows.map((row) => ({ id: row.id, name: row.name, count: row.reminder_count }));
 }
 
 /**
