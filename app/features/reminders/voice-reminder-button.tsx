@@ -2,6 +2,7 @@ import { CmpButton } from '@/components/cmp/cmp-button';
 import { CmpIcon } from '@/components/cmp/cmp-icon';
 import { CmpText } from '@/components/cmp/cmp-text';
 import { useFabBottom } from '@/features/reminders/fab-layout';
+import { describeError } from '@/lib/errors';
 import { getStoredGeminiKey } from '@/lib/gemini-key';
 import { parseReminderText, type ParsedReminder } from '@/lib/gemini';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
@@ -58,7 +59,11 @@ export function VoiceReminderFab({ onParsed }: { onParsed: (parsed: ParsedRemind
       onParsed(parsed);
       setTranscript('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      // The app's one error dialect. Today gemini.ts throws already-translated
+      // Errors and describeError passes those through unchanged, so nothing
+      // reads differently — but if this path ever touches PocketBase, the abort
+      // and field-error rules arrive with it.
+      setError(describeError(err));
     } finally {
       setPhase('idle');
     }
