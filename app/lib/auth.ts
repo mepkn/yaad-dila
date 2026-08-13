@@ -4,6 +4,26 @@ import { pb } from '@/lib/pb';
 // PocketBase's own minimum for the password field.
 export const MIN_PASSWORD_LENGTH = 8;
 
+/** Start a session. The root layout's guard reacts to the auth store change. */
+export function signIn(email: string, password: string) {
+  return pb.collection('users').authWithPassword(email.trim(), password);
+}
+
+/** The signed-in user's email, or null before the auth store rehydrates. */
+export function currentUserEmail(): string | null {
+  return pb.authStore.record?.email ?? null;
+}
+
+/**
+ * End the session.
+ *
+ * The root layout subscribes to authStore.onChange and swaps its protected
+ * guards, so no screen has to navigate afterwards.
+ */
+export function logout(): void {
+  pb.authStore.clear();
+}
+
 /**
  * Change the signed-in user's own password.
  *

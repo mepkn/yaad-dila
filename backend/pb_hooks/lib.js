@@ -93,6 +93,12 @@ function sendNtfy(config, reminder) {
 }
 
 // SPEC §4 — shared create/update validation.
+//
+// DECLARED SEAM — this is the authority. app/lib/reminders.ts mirrors these
+// rules in isDraftValid() to disable the Save button before spending a request;
+// it cannot import this file (goja, separate deployable unit). Change a rule
+// here and there together, or the app either spends a round trip on a form the
+// backend will refuse, or blocks a save the backend would have accepted.
 function validateReminder(record) {
   if (record.getString("title").trim() === "") {
     throw new BadRequestError("title is required");

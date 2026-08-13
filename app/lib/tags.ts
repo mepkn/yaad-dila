@@ -40,20 +40,43 @@ export async function listTagsWithCounts(): Promise<TagWithCount[]> {
   );
 }
 
-export function createTag(name: string): Promise<Tag> {
-  return pb.collection('tags').create<Tag>({
-    name: normalizeTagName(name),
-    user: pb.authStore.record?.id,
-  });
-}
+/**
+ * What a save can mean in this domain. Anything else — no network, a stale
+ * token — throws, so it reaches the caller's useAction like every other
+ * failure in the app.
+ */
+export type SaveTagOutcome = 'saved' | 'duplicate' | 'empty';
 
-// The list screen renders tag badges from `expand: 'tags'`, so a rename or a
-// delete changes what it shows — both mark the reminders list dirty so it
-// refetches the next time it focuses.
-export async function renameTag(id: string, name: string): Promise<Tag> {
-  const tag = await pb.collection('tags').update<Tag>(id, { name: normalizeTagName(name) });
-  markRemindersDirty();
-  return tag;
+/**
+ * Create a tag, or rename one when `id` is given.
+ *
+ * Normalization, the create-or-rename choice, and PocketBase's way of
+ * reporting the unique index all live here. A caller decides what a duplicate
+ * MEANS to it — the dialog complains, resolveTagIds below reuses the existing
+ * tag — but no caller has to recognise one.
+ *
+ * The list screen renders tag badges from `expand: 'tags'`, so a rename changes
+ * what it shows: a successful rename marks the reminders list dirty.
+ */
+export async function saveTag(name: string, id?: string): Promise<SaveTagOutcome> {
+  const normalized = normalizeTagName(name);
+  if (!normalized) return 'empty';
+
+  try {
+    if (id) {
+      await pb.collection('tags').update<Tag>(id, { name: normalized });
+      markRemindersDirty();
+    } else {
+      await pb.collection('tags').create<Tag>({
+        name: normalized,
+        user: pb.authStore.record?.id,
+      });
+    }
+    return 'saved';
+  } catch (err) {
+    if (!isUniqueConstraintError(err)) throw err;
+    return 'duplicate';
+  }
 }
 
 // PocketBase strips a deleted record's id out of every relation field that
@@ -67,7 +90,8 @@ export function normalizeTagName(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
 }
 
-export function isUniqueConstraintError(err: unknown): boolean {
+// The unique index is per (user, name). Private: callers speak in outcomes.
+function isUniqueConstraintError(err: unknown): boolean {
   if (!(err instanceof ClientResponseError) || err.status !== 400) return false;
   const fields = err.response?.data as Record<string, { code?: string }> | undefined;
   return Object.values(fields ?? {}).some((field) => field.code === 'validation_not_unique');
@@ -88,6 +112,8 @@ export async function resolveTagIds(selected: SelectedTag[]): Promise<string[]> 
 
     const name = normalizeTagName(tag.name);
     try {
+      // Deliberately not saveTag(): here a duplicate is success, not a
+      // complaint — the user asked for a tag by name and one already exists.
       const created = await pb.collection('tags').create<Tag>({
         name,
         user: pb.authStore.record?.id,

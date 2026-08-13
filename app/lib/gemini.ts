@@ -1,26 +1,13 @@
 // Voice/NL reminder parsing via the user's own Google Gemini API key.
-// The key lives in SecureStore (same pattern as theme/locale preferences)
-// and the app calls the Gemini API directly — the backend is not involved.
+// The app calls the Gemini API directly — the backend is not involved. The key
+// itself is a device preference and lives in lib/gemini-key.ts; this module is
+// the client only, and stores nothing.
 import i18n from '@/lib/i18n';
 import type { IntervalUnit, RepeatMode } from '@/lib/reminders';
-import * as SecureStore from 'expo-secure-store';
 
-const GEMINI_KEY = 'gemini_api_key';
 // Alias that always points at Google's current flash model — concrete model
 // ids (e.g. gemini-2.5-flash) 404 once retired or gated off newer keys.
 const MODEL = 'gemini-flash-latest';
-
-export async function getStoredGeminiKey(): Promise<string | null> {
-  return SecureStore.getItemAsync(GEMINI_KEY);
-}
-
-export async function setStoredGeminiKey(key: string): Promise<void> {
-  if (key) {
-    await SecureStore.setItemAsync(GEMINI_KEY, key);
-  } else {
-    await SecureStore.deleteItemAsync(GEMINI_KEY);
-  }
-}
 
 export type ParsedReminder = {
   title: string;
@@ -47,7 +34,16 @@ const RESPONSE_SCHEMA = {
     repeat_count: { type: 'INTEGER' },
     start_at: { type: 'STRING', description: 'Local datetime, format YYYY-MM-DDTHH:MM' },
   },
-  required: ['expressible', 'title', 'message', 'interval_n', 'interval_unit', 'repeat_mode', 'repeat_count', 'start_at'],
+  required: [
+    'expressible',
+    'title',
+    'message',
+    'interval_n',
+    'interval_unit',
+    'repeat_mode',
+    'repeat_count',
+    'start_at',
+  ],
 } as const;
 
 function buildPrompt(text: string): string {
@@ -132,12 +128,6 @@ export async function parseReminderText(text: string, apiKey: string): Promise<P
 function parseLocalDateTime(value: string): Date | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
   if (!m) return null;
-  const d = new Date(
-    Number(m[1]),
-    Number(m[2]) - 1,
-    Number(m[3]),
-    Number(m[4]),
-    Number(m[5])
-  );
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
   return isNaN(d.getTime()) ? null : d;
 }
