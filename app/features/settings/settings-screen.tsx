@@ -30,7 +30,12 @@ import {
 import { CmpText } from '@/components/cmp/cmp-text';
 import { changePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth';
 import { pb } from '@/lib/pb';
-import { sendTestNotification, type NtfyAuthType } from '@/lib/ntfy';
+import {
+  loadNtfyConfig,
+  saveNtfyConfig,
+  sendTestNotification,
+  type NtfyAuthType,
+} from '@/lib/ntfy';
 import { getStoredGeminiKey, setStoredGeminiKey } from '@/lib/gemini';
 import { LANGUAGE_OPTIONS, setAppLanguage } from '@/lib/i18n';
 import { type AppLanguage } from '@/lib/locale-preference';
@@ -70,7 +75,6 @@ export function SettingsScreen() {
   const { setColorScheme } = useColorScheme();
   const authOptions = AUTH_VALUES.map((value) => ({ value, label: t(AUTH_LABEL_KEYS[value]) }));
   const themeOptions = THEME_OPTIONS.map((value) => ({ value, label: t(THEME_LABEL_KEYS[value]) }));
-  const [recordId, setRecordId] = React.useState<string | null>(null);
   const [baseUrl, setBaseUrl] = React.useState('');
   const [topic, setTopic] = React.useState('');
   const [authType, setAuthType] = React.useState<NtfyAuthType>('none');
@@ -98,19 +102,17 @@ export function SettingsScreen() {
     });
     (async () => {
       try {
-        const rec = await pb
-          .collection('ntfy_config')
-          .getFirstListItem(`user = "${pb.authStore.record?.id}"`);
-        if (!mounted) return;
-        setRecordId(rec.id);
-        setBaseUrl(rec.base_url ?? '');
-        setTopic(rec.topic ?? '');
-        setAuthType((rec.auth_type as NtfyAuthType) || 'none');
-        setToken(rec.token ?? '');
-        setUsername(rec.username ?? '');
-        setPassword(rec.password ?? '');
+        const config = await loadNtfyConfig();
+        if (!mounted || !config) return;
+        setBaseUrl(config.base_url);
+        setTopic(config.topic);
+        setAuthType(config.auth_type);
+        setToken(config.token);
+        setUsername(config.username);
+        setPassword(config.password);
       } catch {
-        // no config yet — leave the form blank
+        // Unreachable server or a stale token: leave the form as it is rather
+        // than inviting the user to overwrite a config we failed to read.
       } finally {
         if (mounted) setLoading(false);
       }
@@ -120,29 +122,15 @@ export function SettingsScreen() {
     };
   }, []);
 
+  // Raw field values — saveNtfyConfig and sendTestNotification both normalize,
+  // so a test can never exercise a different URL from the one that gets stored.
   function currentSettings() {
-    return {
-      base_url: baseUrl.trim().replace(/\/+$/, ''),
-      topic: topic.trim(),
-      auth_type: authType,
-      token: token.trim(),
-      username: username.trim(),
-      password,
-    };
+    return { base_url: baseUrl, topic, auth_type: authType, token, username, password };
   }
 
-  const saveConfig = useAction(
-    async () => {
-      const data = { ...currentSettings(), user: pb.authStore.record?.id };
-      if (recordId) {
-        await pb.collection('ntfy_config').update(recordId, data);
-      } else {
-        const rec = await pb.collection('ntfy_config').create(data);
-        setRecordId(rec.id);
-      }
-    },
-    { success: t('settings.saved') }
-  );
+  const saveConfig = useAction(() => saveNtfyConfig(currentSettings()), {
+    success: t('settings.saved'),
+  });
 
   const sendTest = useAction(() => sendTestNotification(currentSettings()), {
     success: t('settings.testSent'),
