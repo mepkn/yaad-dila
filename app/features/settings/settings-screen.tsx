@@ -36,7 +36,7 @@ import {
   sendTestNotification,
   type NtfyAuthType,
 } from '@/lib/ntfy';
-import { getStoredGeminiKey, setStoredGeminiKey } from '@/lib/gemini';
+import { getStoredGeminiKey, setStoredGeminiKey } from '@/lib/gemini-key';
 import { LANGUAGE_OPTIONS, setAppLanguage } from '@/lib/i18n';
 import { type AppLanguage } from '@/lib/locale-preference';
 import { useAction } from '@/lib/use-action';
