@@ -4,7 +4,7 @@ import { CmpInput } from '@/components/cmp/cmp-input';
 import { CmpKeyboardAwareScrollView } from '@/components/cmp/cmp-keyboard-aware-scroll-view';
 import { CmpLabel } from '@/components/cmp/cmp-label';
 import { CmpText } from '@/components/cmp/cmp-text';
-import { pb } from '@/lib/pb';
+import { signIn } from '@/lib/auth';
 import { useAction } from '@/lib/use-action';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,7 @@ export function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   // Root layout redirects on auth change, so there is nothing to do on success.
-  const login = useAction(() => pb.collection('users').authWithPassword(email.trim(), password));
+  const login = useAction(() => signIn(email, password));
 
   return (
     <CmpKeyboardAwareScrollView
