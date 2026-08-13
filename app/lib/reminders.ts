@@ -313,13 +313,30 @@ export function draftFromParsed(draft: ReminderDraft, parsed: ParsedReminder): R
   };
 }
 
-/** The same conditions the backend validates, checked before a round-trip. */
+/**
+ * The same conditions the backend validates, checked before a round-trip.
+ *
+ * DECLARED SEAM — the authority is validateReminder() in
+ * backend/pb_hooks/lib.js, which cannot import this (goja, separate deployable
+ * unit). This copy exists only to disable the Save button rather than spend a
+ * request on a form that will be refused.
+ *
+ * Change a rule there and here together. Getting it wrong is not dangerous —
+ * the backend always decides — but it is visible: a rule missing here spends a
+ * round trip and reports the server's English message, and a rule too strict
+ * here blocks a save the backend would have accepted.
+ */
 export function isDraftValid(draft: ReminderDraft): boolean {
   if (draft.title.trim() === '' || draft.message.trim() === '') return false;
   // An empty or non-numeric box reads as 0, which fails this the same way a
   // typed 0 does.
   const intervalN = Number(draft.interval_n);
   if (!Number.isFinite(intervalN) || intervalN < 1) return false;
+  // Unreachable from the select, which offers 1–5 — kept so this mirrors the
+  // backend's rule set completely, and so a future free-text priority cannot
+  // slip past.
+  const priority = Number(draft.priority);
+  if (!Number.isFinite(priority) || priority < 1 || priority > 5) return false;
   if (draft.repeat_mode !== 'count') return true;
   const repeatCount = Number(draft.repeat_count);
   return Number.isFinite(repeatCount) && repeatCount >= 1;
