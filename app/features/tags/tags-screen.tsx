@@ -69,8 +69,10 @@ export function TagsScreen() {
 function EmptyState() {
   const { t } = useTranslation();
 
+  // Shallower than Home's empty state on purpose: this list has no search bar
+  // or status pills above it, so the same offset would sink the text.
   return (
-    <View className="items-center gap-4 pt-24">
+    <View className="items-center gap-4">
       <CmpText className="text-lg font-semibold">{t('tags.emptyTitle')}</CmpText>
       <CmpText className="text-center text-sm text-muted-foreground">{t('tags.emptyBody')}</CmpText>
     </View>
