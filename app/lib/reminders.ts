@@ -1,12 +1,21 @@
 /**
- * Everything the app knows about a Reminder: its shape, how it reads on screen,
- * which bucket it falls in, and — below — the only code that reads or writes the
- * `reminders` collection.
+ * Everything the app knows about a Reminder, in five bands:
  *
- * Screens call the operations at the bottom of this file and nothing else. The
- * PocketBase filter grammar, the sort, `expand`, `skipTotal`, the request-key
- * rules, the abort quirk, and the dirty flag are implementation details and stay
- * private: they are the facts this module exists to stop every screen relearning.
+ *   1. The record        the Reminder type, and how its dates read on screen
+ *   2. The completion rule   when a reminder is finished, and which bucket it is in
+ *   3. The same rule as a filter   the server-side form, generated from band 2
+ *   4. Reads and writes  the only code touching pb.collection('reminders')
+ *   5. The draft         the Reminder as the form holds it, and the conversions
+ *
+ * The bands stay in one file on purpose. Band 5's draftFromRecord and band 4's
+ * saveReminder are two halves of one round trip; splitting them would put the
+ * halves in files that import each other, which is the shape #46 removed from
+ * the form screen.
+ *
+ * Screens call the operations in bands 4 and 5 and nothing else. The PocketBase
+ * filter grammar, the sort, `expand`, `skipTotal`, the request-key rules, the
+ * abort quirk, and the dirty flag are implementation details and stay private:
+ * they are the facts this module exists to stop every screen relearning.
  */
 import type { ParsedReminder } from '@/lib/gemini';
 import i18n from '@/lib/i18n';
@@ -14,6 +23,9 @@ import { pb } from '@/lib/pb';
 import { markRemindersDirty } from '@/lib/reminders-dirty';
 import { buildSearchFilter, parseSearchQuery } from '@/lib/search';
 import { resolveTagIds, type SelectedTag, type Tag } from '@/lib/tags';
+
+// --- 1. The record ---------------------------------------------------------
+
 export type IntervalUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 export type RepeatMode = 'once' | 'forever' | 'count';
 
@@ -57,7 +69,7 @@ export function formatLocal(value: string): string {
   });
 }
 
-// --- The completion rule ------------------------------------------------
+// --- 2. The completion rule ------------------------------------------------
 // How many sends complete a reminder, declared once. Both readers below are
 // derived from this table: the in-memory predicate the cards use, and the
 // PocketBase filter the chips use. Add a repeat mode here and both follow.
@@ -106,7 +118,7 @@ export function statusOf(r: Reminder): ReminderBucket {
   return isFinished(r) ? 'past' : 'paused';
 }
 
-// --- Server-side form of the same rule -----------------------------------
+// --- 3. The same rule as a PocketBase filter --------------------------------
 // The list is paginated, so bucketing happens in the PocketBase query, not in
 // memory. Both polarities are generated from COMPLETION, so they agree with
 // isFinished() by construction.
@@ -157,7 +169,7 @@ function sortFor(status: ReminderStatus): string {
   return status === 'past' ? '-next_fire' : 'next_fire';
 }
 
-// --- Reading and writing reminders --------------------------------------
+// --- 4. Reads and writes ----------------------------------------------------
 // The only place in the app that touches pb.collection('reminders').
 
 const PAGE_SIZE = 30;
@@ -222,7 +234,7 @@ export function getReminder(id: string): Promise<Reminder> {
   return pb.collection('reminders').getOne<Reminder>(id, { expand: 'tags' });
 }
 
-// --- The draft ----------------------------------------------------------
+// --- 5. The draft -----------------------------------------------------------
 // A reminder as the form holds it while the user edits it. Server-owned fields
 // (next_fire, fired_count, active, last_fired, last_error) are absent by design:
 // the backend computes them and an app write would fight the cron tick.
