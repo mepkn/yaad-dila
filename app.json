@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.pknspace.yaaddila"
+      "bundleIdentifier": "com.pknspace.yaaddila",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "Yaad Dila converts your speech to text to create reminders.",
+        "NSMicrophoneUsageDescription": "Yaad Dila uses the microphone so you can create reminders by voice."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -63,6 +67,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d6affc9d-5daa-423f-92da-9ca6f5fbb006"
+      }
+    },
+    "owner": "mepkn"
   }
 }
