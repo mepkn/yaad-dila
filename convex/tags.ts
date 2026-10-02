@@ -13,17 +13,21 @@ function normaliseName(name: string): string {
   return trimmed;
 }
 
+// Names are unique per user ignoring case ("Water" and "water" clash). A user
+// has at most MAX_TAGS tags, so scanning them through the index is bounded.
 async function assertNameFree(
   ctx: MutationCtx,
   userId: Id<"users">,
   name: string,
   except?: Id<"tags">,
 ): Promise<void> {
-  const clash = await ctx.db
+  const wanted = name.toLocaleLowerCase();
+  const tags = await ctx.db
     .query("tags")
-    .withIndex("by_userId_and_name", (q) => q.eq("userId", userId).eq("name", name))
-    .first();
-  if (clash !== null && clash._id !== except) throw new ConvexError("tagNameTaken");
+    .withIndex("by_userId_and_name", (q) => q.eq("userId", userId))
+    .take(MAX_TAGS);
+  const clash = tags.find((t) => t._id !== except && t.name.toLocaleLowerCase() === wanted);
+  if (clash) throw new ConvexError("tagNameTaken");
 }
 
 export const list = query({

@@ -84,7 +84,7 @@ export default function VoiceScreen() {
           label={t("voice.goToSettings")}
           onPress={() => {
             router.back();
-            router.navigate("/settings");
+            router.navigate({ pathname: "/settings", params: { focus: "voiceKey" } });
           }}
         />
       </View>

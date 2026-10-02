@@ -26,6 +26,8 @@ type Props = {
   initial: ReminderFormValues;
   submitLabel: string;
   onSubmit: (input: ReminderInput) => Promise<void>;
+  // Rendered above the fields, inside the scroll view.
+  header?: React.ReactNode;
   footer?: React.ReactNode;
   // Editing a saved reminder rather than creating one.
   existing?: boolean;
@@ -51,7 +53,7 @@ function parseWhole(value: string, max: number): number | undefined {
   return n >= 1 && n <= max ? n : undefined;
 }
 
-export function ReminderForm({ initial, submitLabel, onSubmit, footer, existing }: Props) {
+export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, existing }: Props) {
   const { t } = useTranslation();
   const tags = useQuery(api.tags.list);
   const createTag = useMutation(api.tags.create);
@@ -139,6 +141,7 @@ export function ReminderForm({ initial, submitLabel, onSubmit, footer, existing 
       className="bg-background flex-1"
       behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerClassName="gap-5 p-4 pb-12" keyboardShouldPersistTaps="handled">
+        {header}
         <CmpInput
           label={t("form.title")}
           placeholder={t("form.titlePlaceholder")}

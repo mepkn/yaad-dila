@@ -101,10 +101,10 @@ export default function EditReminderScreen() {
 
   return (
     <>
-      <View className="bg-background px-4 pt-4">{summary}</View>
       <ReminderForm
         key={reminder._id}
         existing
+        header={summary}
         initial={reminder}
         submitLabel={t("common.save")}
         onSubmit={async (input) => {

@@ -86,7 +86,17 @@ describe("tags", () => {
     await expect(alice.as.mutation(api.tags.create, { name: " Private " })).rejects.toThrow(
       /tagNameTaken/,
     );
+    await expect(alice.as.mutation(api.tags.create, { name: "private" })).rejects.toThrow(
+      /tagNameTaken/,
+    );
     await expect(bob.as.mutation(api.tags.create, { name: "Private" })).resolves.toBeTruthy();
+  });
+
+  test("renaming only changes case of the same tag is allowed", async () => {
+    const t = newTest();
+    const { alice, tagId } = await twoUsers(t);
+    await alice.as.mutation(api.tags.rename, { id: tagId, name: "PRIVATE" });
+    expect((await alice.as.query(api.tags.list, {}))[0].name).toBe("PRIVATE");
   });
 
   test("deleting a tag removes it from the owner's reminders", async () => {

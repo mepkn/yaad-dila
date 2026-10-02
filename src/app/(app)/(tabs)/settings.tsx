@@ -1,6 +1,7 @@
 import { useAction, useQuery } from "convex/react";
 import { Bell, LogOut, Send } from "lucide-react-native";
-import { useEffect, useState, type ReactNode } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, View } from "react-native";
 import { api } from "@convex/_generated/api";
@@ -43,6 +44,17 @@ export default function SettingsScreen() {
   const { permission, token, requestAndRegister } = usePush();
   const sendTest = useAction(api.pushTokens.sendTest);
   const { theme, setTheme, language, setLanguage } = usePreferences();
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
+  const scrollRef = useRef<ScrollView>(null);
+  const [voiceKeyY, setVoiceKeyY] = useState<number>();
+
+  // Opened from the voice screen: scroll to the key field, then clear the
+  // param so a later visit starts at the top.
+  useEffect(() => {
+    if (focus !== "voiceKey" || voiceKeyY === undefined) return;
+    scrollRef.current?.scrollTo({ y: voiceKeyY, animated: true });
+    router.setParams({ focus: undefined });
+  }, [focus, voiceKeyY]);
 
   const [testResult, setTestResult] = useState<string>();
   const [testing, setTesting] = useState(false);
@@ -106,6 +118,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       className="bg-background flex-1"
       contentContainerClassName="gap-4 p-4 pb-12"
       keyboardShouldPersistTaps="handled">
@@ -173,31 +186,33 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      <Section title={t("settings.voiceKey")}>
-        <CmpText variant="muted">{t("settings.voiceKeyHint")}</CmpText>
-        {hasKey ? (
-          <>
-            {keyMessage && <CmpText className="text-sm">{keyMessage}</CmpText>}
-            <CmpButton variant="outline" label={t("settings.voiceKeyRemove")} onPress={clearKey} />
-          </>
-        ) : (
-          <>
-            <CmpInput
-              placeholder={t("settings.voiceKeyPlaceholder")}
-              value={keyDraft}
-              onChangeText={setKeyDraft}
-              autoCapitalize="none"
-              autoCorrect={false}
-              secureTextEntry
-            />
-            <CmpButton
-              label={t("common.save")}
-              disabled={keyDraft.trim().length < 10}
-              onPress={saveKey}
-            />
-          </>
-        )}
-      </Section>
+      <View onLayout={(e) => setVoiceKeyY(e.nativeEvent.layout.y)}>
+        <Section title={t("settings.voiceKey")}>
+          <CmpText variant="muted">{t("settings.voiceKeyHint")}</CmpText>
+          {hasKey ? (
+            <>
+              {keyMessage && <CmpText className="text-sm">{keyMessage}</CmpText>}
+              <CmpButton variant="outline" label={t("settings.voiceKeyRemove")} onPress={clearKey} />
+            </>
+          ) : (
+            <>
+              <CmpInput
+                placeholder={t("settings.voiceKeyPlaceholder")}
+                value={keyDraft}
+                onChangeText={setKeyDraft}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+              />
+              <CmpButton
+                label={t("common.save")}
+                disabled={keyDraft.trim().length < 10}
+                onPress={saveKey}
+              />
+            </>
+          )}
+        </Section>
+      </View>
     </ScrollView>
   );
 }
