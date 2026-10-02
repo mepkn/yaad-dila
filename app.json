@@ -19,7 +19,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.pknspace.yaaddila"
+      "package": "com.pknspace.yaaddila",
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -35,7 +39,26 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Yaad Dila uses the microphone so you can create reminders by voice.",
+          "speechRecognitionPermission": "Yaad Dila converts your speech to text to create reminders.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#F06A0F",
+          "defaultChannel": "reminders"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

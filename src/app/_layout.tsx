@@ -1,18 +1,57 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import "@/global.css";
+import "@/lib/i18n";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { useConvexAuth } from "convex/react";
+import { Stack, ThemeProvider } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "nativewind";
+import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { CmpPortalHost } from "@/components/cmp/cmp-portal-host";
+import { convex, secureTokenStorage } from "@/lib/convex";
+import { PreferencesProvider, usePreferences } from "@/lib/preferences";
+import { NAV_THEME } from "@/lib/theme";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function RootStack() {
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { ready } = usePreferences();
+  const { colorScheme } = useColorScheme();
+  const scheme = colorScheme === "dark" ? "dark" : "light";
+
+  useEffect(() => {
+    if (!isLoading && ready) void SplashScreen.hideAsync();
+  }, [isLoading, ready]);
+
+  if (isLoading || !ready) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <ThemeProvider value={NAV_THEME[scheme]}>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={isAuthenticated}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+        <Stack.Protected guard={!isAuthenticated}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+      </Stack>
+      <CmpPortalHost />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ConvexAuthProvider client={convex} storage={secureTokenStorage}>
+        <PreferencesProvider>
+          <RootStack />
+        </PreferencesProvider>
+      </ConvexAuthProvider>
+    </GestureHandlerRootView>
   );
 }
