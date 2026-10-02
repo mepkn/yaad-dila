@@ -27,7 +27,8 @@
       "permissions": [
         "POST_NOTIFICATIONS",
         "RECORD_AUDIO"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",

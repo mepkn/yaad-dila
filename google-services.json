@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "843598478113",
+    "project_id": "yaad-dila",
+    "storage_bucket": "yaad-dila.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:843598478113:android:52273c5b16e097f9891c60",
+        "android_client_info": {
+          "package_name": "com.pknspace.yaaddila"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-FhAi6zAv0OGBlB3wL65KJw5e197ShDQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
