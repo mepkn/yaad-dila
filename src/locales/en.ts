@@ -122,7 +122,8 @@ const en = {
     count_other: "{{n}} reminders",
     renameTitle: "Rename tag",
     deleteTitle: "Delete \"{{name}}\"?",
-    deleteDescription: "It will be removed from {{n}} reminders. The reminders themselves stay.",
+    deleteDescription_one: "It will be removed from {{n}} reminder. The reminder itself stays.",
+    deleteDescription_other: "It will be removed from {{n}} reminders. The reminders themselves stay.",
     errors: {
       tagNameRequired: "Enter a name.",
       tagNameTooLong: "Keep it under 50 characters.",

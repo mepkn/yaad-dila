@@ -126,7 +126,10 @@ export default function TagsScreen() {
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
         title={t("tags.deleteTitle", { name: deleting?.name ?? "" })}
-        description={t("tags.deleteDescription", { n: deleting?.reminderCount ?? 0 })}
+        description={t(
+          deleting?.reminderCount === 1 ? "tags.deleteDescription_one" : "tags.deleteDescription_other",
+          { n: deleting?.reminderCount ?? 0 },
+        )}
         confirmLabel={t("common.delete")}
         cancelLabel={t("common.cancel")}
         destructive

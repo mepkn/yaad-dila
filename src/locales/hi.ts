@@ -99,7 +99,7 @@ const hi: Translations = {
     start: "शुरुआत",
     date: "तारीख",
     time: "समय",
-    every: "कितनी बार में दोहराएँ",
+    every: "हर कितने समय में दोहराएँ",
     intervalCount: "संख्या",
     intervalUnit: "इकाई",
     repeat: "दोहराना",
@@ -124,7 +124,8 @@ const hi: Translations = {
     count_other: "{{n}} रिमाइंडर",
     renameTitle: "टैग का नाम बदलें",
     deleteTitle: "\"{{name}}\" हटाएँ?",
-    deleteDescription: "यह {{n}} रिमाइंडर से हट जाएगा। रिमाइंडर बने रहेंगे।",
+    deleteDescription_one: "यह {{n}} रिमाइंडर से हट जाएगा। रिमाइंडर बना रहेगा।",
+    deleteDescription_other: "यह {{n}} रिमाइंडर से हट जाएगा। रिमाइंडर बने रहेंगे।",
     errors: {
       tagNameRequired: "नाम डालें।",
       tagNameTooLong: "50 अक्षरों से कम रखें।",

@@ -27,6 +27,8 @@ type Props = {
   submitLabel: string;
   onSubmit: (input: ReminderInput) => Promise<void>;
   footer?: React.ReactNode;
+  // Editing a saved reminder rather than creating one.
+  existing?: boolean;
 };
 
 type Field = "title" | "message" | "intervalCount" | "repeatTimes";
@@ -49,7 +51,7 @@ function parseWhole(value: string, max: number): number | undefined {
   return n >= 1 && n <= max ? n : undefined;
 }
 
-export function ReminderForm({ initial, submitLabel, onSubmit, footer }: Props) {
+export function ReminderForm({ initial, submitLabel, onSubmit, footer, existing }: Props) {
   const { t } = useTranslation();
   const tags = useQuery(api.tags.list);
   const createTag = useMutation(api.tags.create);
@@ -127,7 +129,10 @@ export function ReminderForm({ initial, submitLabel, onSubmit, footer }: Props) 
     }
   }
 
-  const startPassed = startAt < openedAt - START_GRACE_MS;
+  // An existing reminder's start is usually in the past; only warn about a start
+  // the user just picked (or a new reminder's).
+  const startEdited = startAt !== initial.startAt || !existing;
+  const startPassed = startEdited && startAt < openedAt - START_GRACE_MS;
 
   return (
     <KeyboardAvoidingView
@@ -210,7 +215,7 @@ export function ReminderForm({ initial, submitLabel, onSubmit, footer }: Props) 
           <CmpFieldFrame label={t("form.every")} error={errors.intervalCount}>
             <View className="flex-row gap-2">
               <CmpInput
-                className="w-24"
+                className={errors.intervalCount ? "border-destructive w-24" : "w-24"}
                 accessibilityLabel={t("form.intervalCount")}
                 keyboardType="number-pad"
                 value={intervalCount}

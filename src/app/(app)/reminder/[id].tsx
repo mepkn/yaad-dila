@@ -104,6 +104,7 @@ export default function EditReminderScreen() {
       <View className="bg-background px-4 pt-4">{summary}</View>
       <ReminderForm
         key={reminder._id}
+        existing
         initial={reminder}
         submitLabel={t("common.save")}
         onSubmit={async (input) => {
@@ -113,6 +114,7 @@ export default function EditReminderScreen() {
         footer={
           <CmpButton
             variant="ghost"
+            tone="destructive"
             icon={Trash2}
             className="mt-2"
             label={t("common.delete")}

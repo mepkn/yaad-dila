@@ -19,7 +19,6 @@ export async function ensureChannel(): Promise<void> {
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
     name: "Reminders",
     importance: Notifications.AndroidImportance.HIGH,
-    sound: "default",
     vibrationPattern: [0, 250, 250, 250],
   });
 }
