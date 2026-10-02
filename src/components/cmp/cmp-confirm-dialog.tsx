@@ -8,7 +8,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
 type Props = {
@@ -43,10 +42,15 @@ export function CmpConfirmDialog({
           <AlertDialogCancel>
             <Text>{cancelLabel}</Text>
           </AlertDialogCancel>
+          {/* AlertDialogAction also feeds its className to the label, so the
+              label clears the background and sets its own colour. Solid red in
+              both themes: the stock dark variant's 60% red reads as muddy. */}
           <AlertDialogAction
-            className={destructive ? buttonVariants({ variant: "destructive" }) : undefined}
+            className={destructive ? "bg-destructive active:bg-destructive/90" : undefined}
             onPress={onConfirm}>
-            <Text>{confirmLabel}</Text>
+            <Text className={destructive ? "bg-transparent text-white" : undefined}>
+              {confirmLabel}
+            </Text>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

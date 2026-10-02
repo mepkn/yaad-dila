@@ -167,7 +167,8 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
         />
 
         <CmpFieldFrame label={t("form.tags")}>
-          <View className="flex-row flex-wrap gap-2">
+          {/* Chips and the New tag button share one height so the row lines up. */}
+          <View className="flex-row flex-wrap items-center gap-2">
             {(tags ?? []).map((tag) => {
               const selected = tagIds.includes(tag._id);
               return (
@@ -177,7 +178,7 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
                   accessibilityState={{ checked: selected }}
                   onPress={() => toggleTag(tag._id)}>
                   <CmpBadge
-                    className="px-3 py-1"
+                    className="h-8 px-3"
                     variant={selected ? "default" : "outline"}
                     label={tag.name}
                   />
@@ -187,6 +188,7 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
             <CmpButton
               size="sm"
               variant="ghost"
+              className="h-8"
               icon={Plus}
               label={t("form.newTag")}
               onPress={() => {
