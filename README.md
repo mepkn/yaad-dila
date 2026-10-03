@@ -22,6 +22,8 @@ Expo Push (FCM) · Google Gemini · i18next.
 
 ## Development
 
+Requires Node 22.18+ (`.nvmrc` pins 22).
+
 ### 1. Install and run Convex locally
 
 ```sh
