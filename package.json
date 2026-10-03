@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.6.4",
     "@types/react": "~19.2.2",
     "convex-test": "^0.0.60",
@@ -75,7 +76,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit && tsc -p convex --noEmit",
     "test": "vitest run",
-    "backend": "convex dev"
+    "backend": "convex dev",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "private": true
 }
