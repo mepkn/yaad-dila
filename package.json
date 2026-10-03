@@ -77,7 +77,14 @@
     "typecheck": "tsc --noEmit && tsc -p convex --noEmit",
     "test": "vitest run",
     "backend": "convex dev",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "deploy:backend": "scripts/deploy-backend.sh",
+    "build:android:preview": "scripts/build-android.sh preview cloud",
+    "build:android:preview:local": "scripts/build-android.sh preview local",
+    "build:android:production": "scripts/build-android.sh production cloud",
+    "build:android:production:local": "scripts/build-android.sh production local",
+    "submit:android": "scripts/eas.sh submit --platform android --profile production",
+    "eas": "scripts/eas.sh"
   },
   "private": true
 }

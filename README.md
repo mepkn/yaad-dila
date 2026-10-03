@@ -120,12 +120,37 @@ After you sign in, the app:
 
 Logging out removes the token. Use **Settings → Send test notification** to check the whole path: Convex → Expo Push → FCM → device.
 
-## Production
+## Deployment
+
+Production backend: Convex deployment `formal-setter-463` (`https://formal-setter-463.convex.cloud`).
+EAS project: `@mepkn/yaad-dila`.
+
+### One-time setup (already done)
+
+- `.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key).
+- `.eas-token` (git-ignored) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts source it, so your global `eas` login is never used or changed.
+- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS` and `SITE_URL=yaaddila://` are set (`npx convex env list` with the deploy key).
+- The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
+- The FCM V1 service-account key is uploaded in EAS credentials for `com.pknspace.yaaddila`.
+
+### Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run deploy:backend` | Typechecks and tests `convex/`, then deploys it to production. Run it whenever `convex/` changes. |
+| `npm run build:android:preview` | Builds an installable APK on EAS cloud. Download it from the link EAS prints. |
+| `npm run build:android:preview:local` | Builds the same APK on this Mac into `dist/` (needs JDK 17 + Android SDK). Install it with `adb install -r dist/<file>.apk`. |
+| `npm run build:android:production` | Builds a Play Store AAB on EAS cloud. The version code auto-increments. |
+| `npm run build:android:production:local` | Builds the same AAB locally into `dist/`. |
+| `npm run submit:android` | Uploads the latest production build to Google Play. The very first upload has to be done by hand in the Play Console. |
+| `npm run eas -- <args>` | Runs any other `eas` command as the personal account, e.g. `npm run eas -- credentials`. |
+
+A release build (preview or production) bundles the JavaScript and talks to the production backend. It doesn't need Metro or `convex dev`, and it has no dev menu. It's signed with the EAS release keystore, so uninstall a development build before installing it.
+
+### Typical release
 
 ```sh
-npx convex deploy                       # creates/uses a cloud prod deployment
-npx convex env set --prod SITE_URL yaaddila://
-npx @convex-dev/auth --prod             # JWT keys for prod
+npm run deploy:backend               # if convex/ changed
+npm run build:android:preview:local  # or :preview for a cloud build
+adb install -r dist/yaad-dila-preview-*.apk
 ```
-
-Set `EXPO_PUBLIC_CONVEX_URL` to the production URL for the production EAS build profile, for example in `eas.json` under `build.production.env`.
