@@ -13,9 +13,8 @@ export CONVEX_DEPLOY_KEY
 # .env.local points `convex` at the local dev backend; don't let it win.
 unset CONVEX_DEPLOYMENT
 
-echo "› Typecheck and tests"
-npx tsc -p convex --noEmit
-npx vitest run
+echo "› Checks"
+npm run check
 
 echo "› Deploying to production"
 npx convex deploy -y

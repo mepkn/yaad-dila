@@ -84,7 +84,9 @@
     "build:android:production": "scripts/build-android.sh production cloud",
     "build:android:production:local": "scripts/build-android.sh production local",
     "submit:android": "scripts/eas.sh submit --platform android --profile production",
-    "eas": "scripts/eas.sh"
+    "eas": "scripts/eas.sh",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "deploy": "scripts/deploy-backend.sh"
   },
   "private": true
 }
