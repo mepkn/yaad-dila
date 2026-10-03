@@ -88,5 +88,8 @@
     "check": "npm run typecheck && npm run lint && npm test",
     "deploy": "scripts/deploy-backend.sh"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  }
 }

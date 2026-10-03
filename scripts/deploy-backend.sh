@@ -5,11 +5,19 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if [ ! -f .env.prod.local ]; then
-  echo "Missing .env.prod.local with CONVEX_DEPLOY_KEY=prod:..." >&2
+  echo "Missing .env.prod.local. Copy .env.example and fill in CONVEX_DEPLOY_KEY." >&2
   exit 1
 fi
-CONVEX_DEPLOY_KEY="$(grep '^CONVEX_DEPLOY_KEY=' .env.prod.local | cut -d= -f2-)"
-export CONVEX_DEPLOY_KEY
+# Read KEY=VALUE lines literally (values such as deploy keys contain "|", so the
+# file is not sourced as shell). Surrounding quotes are stripped.
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in ''|\#*) continue ;; esac
+  key="${line%%=*}"
+  value="${line#*=}"
+  value="${value%\"}"; value="${value#\"}"; value="${value%\'}"; value="${value#\'}"
+  export "$key=$value"
+done < .env.prod.local
+: "${CONVEX_DEPLOY_KEY:?CONVEX_DEPLOY_KEY is not set in .env.prod.local}"
 # .env.local points `convex` at the local dev backend; don't let it win.
 unset CONVEX_DEPLOYMENT
 
