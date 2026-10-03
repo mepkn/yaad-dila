@@ -33,7 +33,9 @@ export function authErrorMessage(t: TFunction, error: unknown, flow: "signIn" | 
   if (flow === "signIn" && /InvalidAccountId|InvalidSecret|Invalid credentials/i.test(message)) {
     return t("auth.errors.invalidCredentials");
   }
-  return flow === "signIn" ? t("auth.errors.invalidCredentials") : t("common.somethingWentWrong");
+  // Production hides plain error text ("Server Error"). Validation failures are
+  // ConvexErrors handled above, so a remaining sign-up failure is a taken email.
+  return flow === "signIn" ? t("auth.errors.invalidCredentials") : t("auth.errors.accountExists");
 }
 
 // reminders.lastError is either "noDevices" or a raw Expo error message.
