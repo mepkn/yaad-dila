@@ -6,6 +6,7 @@ import schema from "./schema";
 export const modules = import.meta.glob("./**/*.ts");
 
 export function newTest() {
+  vi.stubEnv("ALLOWED_EMAILS", "alice@example.com, bob@example.com, a@example.com");
   return convexTest(schema, modules);
 }
 

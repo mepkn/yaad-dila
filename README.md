@@ -45,7 +45,10 @@ This writes `EXPO_PUBLIC_CONVEX_URL` to `.env.local`. Keep it running; it redepl
 ```sh
 npx @convex-dev/auth      # interactive: generates JWT_PRIVATE_KEY + JWKS
 npx convex env set SITE_URL yaaddila://
+npx convex env set ALLOWED_EMAILS you@example.com   # comma-separated; nobody else can sign up or sign in
 ```
+
+`ALLOWED_EMAILS` fails closed: if it's unset, every sign-up, sign-in and API call is refused.
 
 If you enable "Enhanced security for push notifications" in the Expo project, also set
 `npx convex env set EXPO_ACCESS_TOKEN <token>`.
@@ -94,7 +97,7 @@ The app is two parts. The backend is the Convex production deployment `formal-se
 
 - `.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `.env.example`.
 - `.eas-token` (git-ignored) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
-- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS` and `SITE_URL=yaaddila://` are set.
+- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://` and `ALLOWED_EMAILS` are set.
 - The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
 
 ### Backend
@@ -155,7 +158,7 @@ uploads new builds.
 - **The app** (`src/`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `src/components/ui/`, and screens only use the app's own wrappers in `src/components/cmp/cmp-*.tsx`.
 - **Convex** (`convex/`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
-  - `auth.ts`: Convex Auth with the Password provider. The app keeps its tokens in `expo-secure-store`.
+  - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. The app keeps its tokens in `expo-secure-store`.
   - `reminders.ts` and `tags.ts`: the public API. Every function gets the user from `getAuthUserId` and checks that the user owns every document it touches.
   - `fire.ts`: the scheduled `fire` action, then `recordFire`.
   - `lib/schedule.ts`: the scheduling math as pure functions. The app imports it too.

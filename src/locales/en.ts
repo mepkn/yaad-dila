@@ -26,6 +26,7 @@ const en = {
     errors: {
       invalidEmail: "Enter a valid email address.",
       passwordTooShort: "Password must be at least 8 characters.",
+      notAllowed: "This account isn't allowed to use the app.",
       invalidCredentials: "Email or password is incorrect.",
       accountExists: "An account with this email already exists. Log in instead.",
     },

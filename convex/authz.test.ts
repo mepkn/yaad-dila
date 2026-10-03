@@ -130,3 +130,20 @@ describe("push tokens", () => {
     expect(rows.map((r) => r.userId)).toEqual([bob.userId]);
   });
 });
+
+describe("allowlist", () => {
+  test("a signed-in user whose email isn't allowed is refused", async () => {
+    const t = newTest();
+    const mallory = await signedInUser(t, "mallory@example.com");
+    await expect(mallory.as.query(api.reminders.list, {})).rejects.toThrow("notAllowed");
+    await expect(mallory.as.mutation(api.tags.create, { name: "x" })).rejects.toThrow("notAllowed");
+  });
+
+  test("removing an email cuts off an existing session", async () => {
+    const t = newTest();
+    const alice = await signedInUser(t, "alice@example.com");
+    expect(await alice.as.query(api.reminders.list, {})).toEqual([]);
+    vi.stubEnv("ALLOWED_EMAILS", "bob@example.com");
+    await expect(alice.as.query(api.reminders.list, {})).rejects.toThrow("notAllowed");
+  });
+});

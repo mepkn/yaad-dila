@@ -28,6 +28,7 @@ const hi: Translations = {
     errors: {
       invalidEmail: "सही ईमेल पता डालें।",
       passwordTooShort: "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।",
+      notAllowed: "इस खाते को ऐप इस्तेमाल करने की अनुमति नहीं है।",
       invalidCredentials: "ईमेल या पासवर्ड गलत है।",
       accountExists: "इस ईमेल से खाता पहले से है। लॉग इन करें।",
     },

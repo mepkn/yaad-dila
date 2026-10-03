@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as fire from "../fire.js";
 import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
+import type * as lib_allowlist from "../lib/allowlist.js";
 import type * as lib_expoPush from "../lib/expoPush.js";
 import type * as lib_schedule from "../lib/schedule.js";
 import type * as lib_scheduling from "../lib/scheduling.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   fire: typeof fire;
   http: typeof http;
   "lib/access": typeof lib_access;
+  "lib/allowlist": typeof lib_allowlist;
   "lib/expoPush": typeof lib_expoPush;
   "lib/schedule": typeof lib_schedule;
   "lib/scheduling": typeof lib_scheduling;
