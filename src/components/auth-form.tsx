@@ -44,7 +44,7 @@ export function AuthForm({ flow }: { flow: Flow }) {
           contentContainerClassName="flex-grow justify-center gap-6 p-6"
           keyboardShouldPersistTaps="handled">
           <View className="gap-2">
-            <CmpText className="text-primary text-lg font-semibold">{t("common.appName")}</CmpText>
+            <CmpText className="text-brand text-lg font-semibold">{t("common.appName")}</CmpText>
             <CmpText variant="h3">{t(isSignUp ? "auth.signUpTitle" : "auth.signInTitle")}</CmpText>
             <CmpText variant="muted">
               {t(isSignUp ? "auth.signUpSubtitle" : "auth.signInSubtitle")}
