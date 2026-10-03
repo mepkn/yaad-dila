@@ -77,7 +77,7 @@
     "typecheck": "tsc --noEmit && tsc -p convex --noEmit",
     "test": "vitest run",
     "backend": "convex dev",
-    "icons": "node scripts/generate-icons.mjs",
+    "icons": "node scripts/generate-icons.mts",
     "deploy:backend": "scripts/deploy-backend.sh",
     "build:android:preview": "scripts/build-android.sh preview cloud",
     "build:android:preview:local": "scripts/build-android.sh preview local",
@@ -90,6 +90,6 @@
   },
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   }
 }

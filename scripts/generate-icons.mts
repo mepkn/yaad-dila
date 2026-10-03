@@ -16,7 +16,15 @@ const bell = "M340 452 C340 320 410 247 512 247 C614 247 684 320 684 452 L684 56
 const bolt = "M557 317 L529 443 L593 443 L471 616 L497 501 L437 501 Z";
 const clapper = { cx: 512, cy: 731, r: 46 };
 
-function mark({ bellFill, boltFill, dotFill, scale = 1, withDot = true }) {
+type MarkOptions = {
+  bellFill: string;
+  boltFill: string;
+  dotFill: string;
+  scale?: number;
+  withDot?: boolean;
+};
+
+function mark({ bellFill, boltFill, dotFill, scale = 1, withDot = true }: MarkOptions): string {
   const t = `translate(512 500) scale(${scale}) translate(-512 -500)`;
   return `<g transform="${t}">
     <path d="${bell}" fill="${bellFill}"/>
@@ -34,7 +42,7 @@ const mono = `<defs><mask id="m"><rect width="1024" height="1024" fill="white"/>
   <g transform="translate(512 500) scale(0.62) translate(-512 -500)"><path d="${bolt}" fill="black"/></g></mask></defs>
   <g mask="url(#m)">${mark({ bellFill: "#fff", boltFill: "#fff", dotFill: "#fff", scale: 0.62 })}</g>`;
 
-const svgs = {
+const svgs: Record<string, [size: number, body: string]> = {
   "icon.png": [1024, gradient + mark({ bellFill: NAVY, boltFill: "#fff", dotFill: "#fff" })],
   "android-icon-background.png": [1024, gradient],
   // Adaptive icons are cropped to the centre ~66%, so the mark is scaled down.
