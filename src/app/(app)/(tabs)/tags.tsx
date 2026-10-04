@@ -101,10 +101,10 @@ export default function TagsScreen() {
         />
       )}
 
-      <View className="absolute bottom-6 right-5">
+      <View className="absolute bottom-6 right-6" pointerEvents="box-none">
         <CmpButton
           size="icon"
-          className="h-16 w-16 rounded-full shadow-lg"
+          className="size-14 rounded-full shadow-lg shadow-black/20"
           icon={Plus}
           label={t("form.newTag")}
           onPress={() => openEditor("new")}
