@@ -8,6 +8,12 @@ using Expo + Convex + expo-notifications.
 - Component layering: React Native Reusables primitives live in components/ui/; screens never
   import them directly — each primitive is wrapped by an app-owned Cmp* component in
   components/cmp/cmp-*.tsx
+- Keyboard: `react-native-keyboard-controller`, with `KeyboardProvider` at the root.
+  - Form screens use `CmpKeyboardAwareScrollView`, which scrolls the focused field above the keyboard.
+  - A full-height editor with a bottom bar uses `CmpKeyboardPadding`.
+  - Dialogs rise by half the keyboard height (in `components/ui/dialog.tsx`).
+  - Lists with a search box at the top, and screens without inputs, need nothing.
+  - No fixed offsets such as `mb-[40vh]`, no RN `KeyboardAvoidingView`, no bottom sheets.
 - Convex Cloud as the entire backend (database, auth, scheduling, push sending)
 - Convex Auth with email + password; auth tokens stored in expo-secure-store
 - expo-notifications + Expo Push Service (FCM on Android)
