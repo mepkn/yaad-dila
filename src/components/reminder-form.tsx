@@ -2,13 +2,14 @@ import { useMutation, useQuery } from "convex/react";
 import { Plus } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { START_GRACE_MS, type IntervalUnit, type RepeatMode } from "@convex/lib/schedule";
 import { CmpBadge } from "@/components/cmp/cmp-badge";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpFieldFrame, CmpInput, CmpTextarea } from "@/components/cmp/cmp-field";
+import { CmpKeyboardAwareScrollView } from "@/components/cmp/cmp-keyboard-aware-scroll-view";
 import { CmpPromptDialog } from "@/components/cmp/cmp-prompt-dialog";
 import { CmpSegmented } from "@/components/cmp/cmp-segmented";
 import { CmpSelect } from "@/components/cmp/cmp-select";
@@ -137,10 +138,10 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
   const startPassed = startEdited && startAt < openedAt - START_GRACE_MS;
 
   return (
-    <KeyboardAvoidingView
-      className="bg-background flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerClassName="gap-5 p-4 pb-12" keyboardShouldPersistTaps="handled">
+    <>
+      <CmpKeyboardAwareScrollView
+        className="bg-background flex-1"
+        contentContainerClassName="gap-5 p-4 pb-12">
         {header}
         <CmpInput
           label={t("form.title")}
@@ -255,7 +256,7 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
         {formError && <CmpText className="text-destructive">{formError}</CmpText>}
         <CmpButton size="lg" label={submitLabel} loading={submitting} onPress={submit} />
         {footer}
-      </ScrollView>
+      </CmpKeyboardAwareScrollView>
 
       <CmpPromptDialog
         open={tagDialogOpen}
@@ -267,6 +268,6 @@ export function ReminderForm({ initial, submitLabel, onSubmit, header, footer, e
         cancelLabel={t("common.cancel")}
         onSubmit={addTag}
       />
-    </KeyboardAvoidingView>
+    </>
   );
 }

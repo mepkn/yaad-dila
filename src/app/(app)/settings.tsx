@@ -3,11 +3,12 @@ import { Bell, LogOut, Send } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, ScrollView, View } from "react-native";
+import { Linking, type ScrollView, View } from "react-native";
 import { api } from "@convex/_generated/api";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpCard, CmpCardContent, CmpCardHeader, CmpCardTitle } from "@/components/cmp/cmp-card";
 import { CmpInput } from "@/components/cmp/cmp-field";
+import { CmpKeyboardAwareScrollView } from "@/components/cmp/cmp-keyboard-aware-scroll-view";
 import { CmpSegmented } from "@/components/cmp/cmp-segmented";
 import { CmpSeparator } from "@/components/cmp/cmp-separator";
 import { CmpText } from "@/components/cmp/cmp-text";
@@ -117,11 +118,10 @@ export default function SettingsScreen() {
           : t("settings.deviceNotRegistered");
 
   return (
-    <ScrollView
+    <CmpKeyboardAwareScrollView
       ref={scrollRef}
       className="bg-background flex-1"
-      contentContainerClassName="gap-4 p-4 pb-12"
-      keyboardShouldPersistTaps="handled">
+      contentContainerClassName="gap-4 p-4 pb-12">
       <Section title={t("settings.account")}>
         <Row label={t("settings.signedInAs")} value={me?.email ?? "…"} />
         <CmpButton
@@ -213,6 +213,6 @@ export default function SettingsScreen() {
           )}
         </Section>
       </View>
-    </ScrollView>
+    </CmpKeyboardAwareScrollView>
   );
 }

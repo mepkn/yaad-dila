@@ -3,9 +3,10 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-spe
 import { Mic, Sparkles, Square } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpTextarea } from "@/components/cmp/cmp-field";
+import { CmpKeyboardAwareScrollView } from "@/components/cmp/cmp-keyboard-aware-scroll-view";
 import { CmpText } from "@/components/cmp/cmp-text";
 import { encodeDraft } from "@/lib/draft";
 import { GeminiError, getGeminiKey, parseReminder } from "@/lib/gemini";
@@ -92,40 +93,38 @@ export default function VoiceScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
+    <CmpKeyboardAwareScrollView
       className="bg-background flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerClassName="gap-5 p-5" keyboardShouldPersistTaps="handled">
-        <CmpText variant="muted">{t("voice.intro")}</CmpText>
-        <CmpTextarea
-          value={text}
-          onChangeText={setText}
-          placeholder={t("voice.placeholder")}
-          className="min-h-32 text-base"
-        />
-        <View className="items-center gap-2">
-          <CmpButton
-            size="icon"
-            variant={listening ? "destructive" : "secondary"}
-            className="h-20 w-20 rounded-full"
-            icon={listening ? Square : Mic}
-            label={t(listening ? "voice.stop" : "voice.listen")}
-            onPress={() => (listening ? ExpoSpeechRecognitionModule.stop() : void listen())}
-          />
-          <CmpText variant="muted">
-            {listening ? t("voice.listening") : t("voice.listen")}
-          </CmpText>
-        </View>
-        {error && <CmpText className="text-destructive">{error}</CmpText>}
+      contentContainerClassName="gap-5 p-5">
+      <CmpText variant="muted">{t("voice.intro")}</CmpText>
+      <CmpTextarea
+        value={text}
+        onChangeText={setText}
+        placeholder={t("voice.placeholder")}
+        className="min-h-32 text-base"
+      />
+      <View className="items-center gap-2">
         <CmpButton
-          size="lg"
-          icon={Sparkles}
-          label={t(parsing ? "voice.parsing" : "voice.parse")}
-          loading={parsing}
-          disabled={text.trim().length < 3}
-          onPress={parse}
+          size="icon"
+          variant={listening ? "destructive" : "secondary"}
+          className="h-20 w-20 rounded-full"
+          icon={listening ? Square : Mic}
+          label={t(listening ? "voice.stop" : "voice.listen")}
+          onPress={() => (listening ? ExpoSpeechRecognitionModule.stop() : void listen())}
         />
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <CmpText variant="muted">
+          {listening ? t("voice.listening") : t("voice.listen")}
+        </CmpText>
+      </View>
+      {error && <CmpText className="text-destructive">{error}</CmpText>}
+      <CmpButton
+        size="lg"
+        icon={Sparkles}
+        label={t(parsing ? "voice.parsing" : "voice.parse")}
+        loading={parsing}
+        disabled={text.trim().length < 3}
+        onPress={parse}
+      />
+    </CmpKeyboardAwareScrollView>
   );
 }

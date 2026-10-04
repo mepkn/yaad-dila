@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { CmpPortalHost } from "@/components/cmp/cmp-portal-host";
 import { convex, secureTokenStorage } from "@/lib/convex";
 import { PreferencesProvider, usePreferences } from "@/lib/preferences";
@@ -47,11 +48,13 @@ function RootStack() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ConvexAuthProvider client={convex} storage={secureTokenStorage}>
-        <PreferencesProvider>
-          <RootStack />
-        </PreferencesProvider>
-      </ConvexAuthProvider>
+      <KeyboardProvider>
+        <ConvexAuthProvider client={convex} storage={secureTokenStorage}>
+          <PreferencesProvider>
+            <RootStack />
+          </PreferencesProvider>
+        </ConvexAuthProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }
