@@ -18,8 +18,7 @@ Platform: Android (sideloaded APK; Play Store later).
 
 Expo (SDK 57) · Expo Router · TypeScript · NativeWind + React Native Reusables ·
 Convex (database, auth, scheduler, push sending) · Convex Auth · expo-notifications +
-Expo Push (FCM) · Google Gemini · i18next ·
-`react-native-keyboard-controller` (keyboard handling).
+Expo Push (FCM) · Google Gemini · i18next.
 
 ## Development
 
@@ -157,7 +156,6 @@ uploads new builds.
 ```
 
 - **The app** (`src/`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `src/components/ui/`, and screens only use the app's own wrappers in `src/components/cmp/cmp-*.tsx`.
-- **Keyboard** (`react-native-keyboard-controller`, `KeyboardProvider` in the root layout). The auth, reminder, voice and Settings screens scroll the focused field above the keyboard (`CmpKeyboardAwareScrollView`). Dialogs, such as Create a tag, rise by half the keyboard height (`components/ui/dialog.tsx`), which keeps them centred in the space above it. The reminders list needs nothing, because its search box is at the top.
 - **Convex** (`convex/`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
   - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. The app keeps its tokens in `expo-secure-store`.
