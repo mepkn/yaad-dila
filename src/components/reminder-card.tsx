@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { api } from "@convex/_generated/api";
 import type { Doc } from "@convex/_generated/dataModel";
-import { reminderStatus, totalFires } from "@convex/lib/schedule";
+import { totalFires } from "@convex/lib/schedule";
 import { CmpBadge } from "@/components/cmp/cmp-badge";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpCard, CmpCardContent } from "@/components/cmp/cmp-card";
@@ -25,7 +25,7 @@ export function ReminderCard({ reminder, tagNames }: Props) {
   const setActive = useMutation(api.reminders.setActive);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string>();
-  const status = reminderStatus(reminder);
+  const status = reminder.status;
   const total = totalFires(reminder);
 
   async function toggle() {

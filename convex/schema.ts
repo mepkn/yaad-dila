@@ -16,6 +16,12 @@ export const repeatMode = v.union(
   v.literal("count"),
 );
 
+export const reminderStatus = v.union(
+  v.literal("active"),
+  v.literal("paused"),
+  v.literal("finished"), // ran out of fires; editing the schedule can restart it
+);
+
 export default defineSchema({
   ...authTables,
 
@@ -36,14 +42,19 @@ export default defineSchema({
     startAt: v.number(),
     nextFireAt: v.number(),
     lastFiredAt: v.optional(v.number()),
-    active: v.boolean(),
+    status: reminderStatus,
+    // title, message and note, kept in step on every save for the search index.
+    searchText: v.string(),
     lastError: v.optional(v.string()),
     scheduledFnId: v.optional(v.id("_scheduled_functions")),
-  }).index("by_userId_and_nextFireAt", ["userId", "nextFireAt"]),
+  })
+    .index("by_userId_and_status_and_nextFireAt", ["userId", "status", "nextFireAt"])
+    .searchIndex("search_text", { searchField: "searchText", filterFields: ["userId"] }),
 
   tags: defineTable({
     userId: v.id("users"),
     name: v.string(),
+    reminderCount: v.number(), // its reminderTags rows, kept by lib/tagLinks.ts
   }).index("by_userId_and_name", ["userId", "name"]),
 
   // Join table mirroring reminders.tagIds so tag counts and tag deletion are

@@ -4,7 +4,7 @@ import {
   nextAfterFire,
   nextFromNow,
   occurrence,
-  reminderStatus,
+  statusAfter,
   type ScheduleSpec,
 } from "./lib/schedule";
 
@@ -136,14 +136,12 @@ describe("next fire time", () => {
 });
 
 describe("status", () => {
-  test("inactive and exhausted is finished, otherwise paused", () => {
+  test("no fires left is finished; otherwise running or paused as asked", () => {
     const base = spec({ repeatMode: "count", repeatTimes: 3 });
-    expect(reminderStatus({ ...base, active: true, firedCount: 1 })).toBe("active");
-    expect(reminderStatus({ ...base, active: false, firedCount: 1 })).toBe("paused");
-    expect(reminderStatus({ ...base, active: false, firedCount: 3 })).toBe("finished");
-    const once = spec({ repeatMode: "once" });
-    expect(reminderStatus({ ...once, active: false, firedCount: 1 })).toBe("finished");
-    const forever = spec({});
-    expect(reminderStatus({ ...forever, active: false, firedCount: 99 })).toBe("paused");
+    expect(statusAfter(base, 1, true)).toBe("active");
+    expect(statusAfter(base, 1, false)).toBe("paused");
+    expect(statusAfter(base, 3, true)).toBe("finished");
+    expect(statusAfter(spec({ repeatMode: "once" }), 1, false)).toBe("finished");
+    expect(statusAfter(spec({}), 99, false)).toBe("paused");
   });
 });

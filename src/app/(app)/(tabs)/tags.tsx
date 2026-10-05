@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "convex/react";
+import { router } from "expo-router";
 import { Pencil, Plus, Tag, Trash2 } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { CmpButton } from "@/components/cmp/cmp-button";
@@ -77,10 +78,13 @@ export default function TagsScreen() {
             <CmpCard className="py-3">
               <CmpCardContent className="flex-row items-center gap-3">
                 <CmpIcon as={Tag} className="text-muted-foreground" />
-                <View className="flex-1">
+                <Pressable
+                  className="flex-1"
+                  accessibilityRole="button"
+                  onPress={() => router.push({ pathname: "/tag/[id]", params: { id: item._id } })}>
                   <CmpText className="font-medium">{item.name}</CmpText>
                   <CmpText variant="muted">{countLabel(item.reminderCount)}</CmpText>
-                </View>
+                </Pressable>
                 <CmpButton
                   size="icon"
                   variant="ghost"

@@ -1,5 +1,5 @@
 import { router, Tabs } from "expo-router";
-import { Bell, Settings, Tag } from "lucide-react-native";
+import { Bell, Search, Settings, Tag } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { CmpButton } from "@/components/cmp/cmp-button";
 
@@ -25,15 +25,15 @@ export default function TabsLayout() {
       screenOptions={{
         headerTitleAlign: "left",
         title: t("common.appName"),
-        headerRight: () => <SettingsButton />,
-        // Lines the icon up with the content's 16px gutter (the ghost button
-        // already adds 10px around the icon).
-        headerRightContainerStyle: { paddingRight: 4 },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           headerTitle: t("common.appName"),
+          headerRight: () => <SettingsButton />,
+          // Lines the icon up with the content's 16px gutter (the ghost button
+          // already adds 10px around the icon).
+          headerRightContainerStyle: { paddingRight: 4 },
           tabBarLabel: t("tabs.reminders"),
           tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
         }}
@@ -44,6 +44,14 @@ export default function TabsLayout() {
           headerTitle: t("tabs.tags"),
           tabBarLabel: t("tabs.tags"),
           tabBarIcon: ({ color, size }) => <Tag color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          headerTitle: t("tabs.search"),
+          tabBarLabel: t("tabs.search"),
+          tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
         }}
       />
     </Tabs>

@@ -9,8 +9,9 @@ Platform: Android (sideloaded APK; Play Store later).
 
 - Reminders that repeat every N minutes, hours, days, weeks or months: once, forever, or a set number of times.
 - Push notifications that keep firing on schedule. Tapping one opens its reminder.
-- Pause, resume, edit and delete, with live search and an active / paused / finished filter.
-- Tags to group reminders.
+- Pause, resume, edit and delete. Active / Paused / Finished lists, paginated on the server.
+- Tags to group reminders; tap a tag to see all its reminders.
+- A Search tab that searches every reminder's title, message and note on the server.
 - Voice reminders: say "remind me to drink water every 2 hours from 9am, 5 times" and the form is filled in (Google Gemini with your own API key).
 - English and Hindi. Light, dark or system theme.
 

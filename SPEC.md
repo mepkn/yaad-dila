@@ -60,12 +60,18 @@ using Expo + Convex + expo-notifications.
 - On login: request notification permission, create one Android notification channel
   ("reminders", high importance), register the Expo push token with Convex; remove it on logout.
 - Tapping a notification deep-links to that reminder's detail/edit screen.
-- Reminders tab: live list with search, status filter (active / paused / finished), and cards
+- Tabs: Reminders, Tags, Search. Settings is a gear in the Reminders header.
+- Reminders tab: an Active / Paused / Finished switch (Active by default). Each status is a
+  server-side paginated list (`reminders.status`, index `[userId, status, nextFireAt]`); no reminder
+  cap. Cards
   showing title, schedule summary, next fire time, fired count, and lastError if any.
   Pause/resume from the list. Floating add button.
 - Reminder form: title, message, note, tags (pick existing or create), start date/time,
   interval count + unit, repeat mode + times.
-- Tags tab: tags with reminder counts; rename and delete.
+- Tags tab: tags with reminder counts (`tags.reminderCount`, kept by `convex/lib/tagLinks.ts`);
+  rename and delete. Tapping a tag opens every reminder with it, in any status, paginated.
+- Search tab: server-side search (index `search_text` on title + message + note, filtered by user)
+  over every reminder in any status, paginated.
 - Settings: account (email, log out), notification permission status + "send test
   notification" (through Convex), appearance (light / dark / system), language
   (English / Hindi / follow device), voice AI key.

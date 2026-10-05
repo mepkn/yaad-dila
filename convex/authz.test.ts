@@ -3,6 +3,8 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { newTest, signedInUser, type TestConvex } from "./test.helpers";
 
+const activePage = { status: "active" as const, paginationOpts: { numItems: 50, cursor: null } };
+
 const T0 = Date.UTC(2026, 0, 1);
 
 beforeEach(() => {
@@ -37,7 +39,7 @@ describe("reminders", () => {
     const t = newTest();
     const { bob, reminderId } = await twoUsers(t);
     expect(await bob.as.query(api.reminders.get, { id: reminderId })).toBeNull();
-    expect(await bob.as.query(api.reminders.list, {})).toEqual([]);
+    expect((await bob.as.query(api.reminders.list, activePage)).page).toEqual([]);
   });
 
   test("another user can't modify or delete them", async () => {
@@ -54,7 +56,7 @@ describe("reminders", () => {
     );
 
     const r = await alice.as.query(api.reminders.get, { id: reminderId });
-    expect(r).toMatchObject({ title: "Alice's reminder", active: true });
+    expect(r).toMatchObject({ title: "Alice's reminder", status: "active" });
   });
 
   test("another user can't attach someone else's tag", async () => {
@@ -135,15 +137,15 @@ describe("allowlist", () => {
   test("a signed-in user whose email isn't allowed is refused", async () => {
     const t = newTest();
     const mallory = await signedInUser(t, "mallory@example.com");
-    await expect(mallory.as.query(api.reminders.list, {})).rejects.toThrow("notAllowed");
+    await expect(mallory.as.query(api.reminders.list, activePage)).rejects.toThrow("notAllowed");
     await expect(mallory.as.mutation(api.tags.create, { name: "x" })).rejects.toThrow("notAllowed");
   });
 
   test("removing an email cuts off an existing session", async () => {
     const t = newTest();
     const alice = await signedInUser(t, "alice@example.com");
-    expect(await alice.as.query(api.reminders.list, {})).toEqual([]);
+    expect((await alice.as.query(api.reminders.list, activePage)).page).toEqual([]);
     vi.stubEnv("ALLOWED_EMAILS", "bob@example.com");
-    await expect(alice.as.query(api.reminders.list, {})).rejects.toThrow("notAllowed");
+    await expect(alice.as.query(api.reminders.list, activePage)).rejects.toThrow("notAllowed");
   });
 });

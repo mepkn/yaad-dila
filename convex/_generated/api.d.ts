@@ -16,6 +16,7 @@ import type * as lib_allowlist from "../lib/allowlist.js";
 import type * as lib_expoPush from "../lib/expoPush.js";
 import type * as lib_schedule from "../lib/schedule.js";
 import type * as lib_scheduling from "../lib/scheduling.js";
+import type * as lib_tagLinks from "../lib/tagLinks.js";
 import type * as pushTokens from "../pushTokens.js";
 import type * as reminders from "../reminders.js";
 import type * as tags from "../tags.js";
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   "lib/expoPush": typeof lib_expoPush;
   "lib/schedule": typeof lib_schedule;
   "lib/scheduling": typeof lib_scheduling;
+  "lib/tagLinks": typeof lib_tagLinks;
   pushTokens: typeof pushTokens;
   reminders: typeof reminders;
   tags: typeof tags;

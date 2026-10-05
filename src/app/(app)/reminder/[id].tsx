@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { reminderStatus, totalFires } from "@convex/lib/schedule";
+import { totalFires } from "@convex/lib/schedule";
 import { CmpBadge } from "@/components/cmp/cmp-badge";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpCard, CmpCardContent } from "@/components/cmp/cmp-card";
@@ -40,7 +40,7 @@ export default function EditReminderScreen() {
     );
   }
 
-  const status = reminderStatus(reminder);
+  const status = reminder.status;
   const total = totalFires(reminder);
 
   async function run(action: () => Promise<unknown>) {

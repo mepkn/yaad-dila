@@ -58,7 +58,7 @@ export const prepare = internalQuery({
   ),
   handler: async (ctx, args) => {
     const reminder = await ctx.db.get("reminders", args.reminderId);
-    if (reminder === null || !reminder.active) return null;
+    if (reminder === null || reminder.status !== "active") return null;
     if (reminder.nextFireAt !== args.fireAt) return null;
     const tokens = await ctx.db
       .query("pushTokens")
@@ -84,7 +84,7 @@ export const recordFire = internalMutation({
     await deleteTokens(ctx, args.unregisteredTokens);
 
     const reminder = await ctx.db.get("reminders", args.reminderId);
-    if (reminder === null || !reminder.active) return null;
+    if (reminder === null || reminder.status !== "active") return null;
     if (reminder.nextFireAt !== args.fireAt) return null;
 
     const now = Date.now();
@@ -94,7 +94,7 @@ export const recordFire = internalMutation({
     if (isExhausted(reminder, firedCount)) {
       await ctx.db.patch("reminders", reminder._id, {
         ...base,
-        active: false,
+        status: "finished",
         scheduledFnId: undefined,
       });
       return null;

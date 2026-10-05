@@ -40,12 +40,13 @@ export async function reschedule(
     if (job !== null && job.state.kind === "inProgress") {
       const args = job.args[0] as { fireAt?: number } | undefined;
       // That run will record itself and schedule the next one.
-      if (reminder.active && args?.fireAt === reminder.nextFireAt) return;
+      if (reminder.status === "active" && args?.fireAt === reminder.nextFireAt) return;
     }
     await cancelPendingRun(ctx, reminder);
   }
-  const scheduledFnId = reminder.active
-    ? await scheduleRun(ctx, reminder._id, reminder.nextFireAt)
-    : undefined;
+  const scheduledFnId =
+    reminder.status === "active"
+      ? await scheduleRun(ctx, reminder._id, reminder.nextFireAt)
+      : undefined;
   await ctx.db.patch("reminders", reminder._id, { scheduledFnId });
 }

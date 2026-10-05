@@ -189,10 +189,13 @@ export function nextFromNow(spec: ScheduleSpec, now: number): number {
 
 export type ReminderStatus = "active" | "paused" | "finished";
 
-export function reminderStatus(r: ScheduleSpec & {
-  active: boolean;
-  firedCount: number;
-}): ReminderStatus {
-  if (r.active) return "active";
-  return isExhausted(r, r.firedCount) ? "finished" : "paused";
+// The status to store after a schedule change: a reminder with no fires left
+// is finished; otherwise it runs unless it's being kept paused.
+export function statusAfter(
+  spec: ScheduleSpec,
+  firedCount: number,
+  running: boolean,
+): ReminderStatus {
+  if (isExhausted(spec, firedCount)) return "finished";
+  return running ? "active" : "paused";
 }

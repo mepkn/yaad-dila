@@ -31,6 +31,7 @@ export default function AppLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="reminder/new" options={{ title: t("form.newTitle") }} />
         <Stack.Screen name="reminder/[id]" options={{ title: t("form.editTitle") }} />
+        <Stack.Screen name="tag/[id]" />
         <Stack.Screen name="settings" options={{ title: t("tabs.settings") }} />
         <Stack.Screen name="voice" options={{ title: t("voice.title"), presentation: "modal" }} />
       </Stack>

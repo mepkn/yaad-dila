@@ -3,6 +3,8 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { advance, newTest, signedInUser, stubExpoPush, type TestConvex } from "./test.helpers";
 
+const activePage = { status: "active" as const, paginationOpts: { numItems: 50, cursor: null } };
+
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const T0 = Date.UTC(2026, 0, 1, 0, 0);
@@ -76,7 +78,7 @@ describe("fire", () => {
     expect(r.firedCount).toBe(1);
     expect(r.lastFiredAt).toBe(T0 + 10 * MIN);
     expect(r.nextFireAt).toBe(T0 + 70 * MIN);
-    expect(r.active).toBe(true);
+    expect(r.status).toBe("active");
     expect(await pendingJobs(t)).toHaveLength(1);
   });
 
@@ -92,7 +94,7 @@ describe("fire", () => {
     expect(sent).toHaveLength(1);
     const r = await getReminder(t, id);
     expect(r.firedCount).toBe(1);
-    expect(r.active).toBe(false);
+    expect(r.status).not.toBe("active");
     expect(r.scheduledFnId).toBeUndefined();
     expect(await pendingJobs(t)).toHaveLength(0);
   });
@@ -109,7 +111,7 @@ describe("fire", () => {
     expect(sent).toHaveLength(3);
     const r = await getReminder(t, id);
     expect(r.firedCount).toBe(3);
-    expect(r.active).toBe(false);
+    expect(r.status).not.toBe("active");
     expect(r.lastFiredAt).toBe(T0 + 130 * MIN);
   });
 
@@ -124,7 +126,7 @@ describe("fire", () => {
 
     expect(sent).toHaveLength(10);
     const r = await getReminder(t, id);
-    expect(r.active).toBe(true);
+    expect(r.status).toBe("active");
     expect(r.nextFireAt).toBe(T0 + 10 * MIN + 10 * HOUR);
   });
 
@@ -221,7 +223,7 @@ describe("pause, resume, edit, delete", () => {
     // Missed times don't count: all 4 remaining fires still happen.
     for (let i = 0; i < 6; i++) await advance(t, HOUR);
     expect(sent).toHaveLength(5);
-    expect((await getReminder(t, id)).active).toBe(false);
+    expect((await getReminder(t, id)).status).not.toBe("active");
   });
 
   test("a finished reminder can't be resumed", async () => {
@@ -259,7 +261,7 @@ describe("pause, resume, edit, delete", () => {
     const id = await as.mutation(api.reminders.create, hourly());
     await as.mutation(api.reminders.setActive, { id, active: false });
     await as.mutation(api.reminders.update, { id, ...hourly({ title: "Tea" }) });
-    expect((await getReminder(t, id)).active).toBe(false);
+    expect((await getReminder(t, id)).status).not.toBe("active");
     expect(await pendingJobs(t)).toHaveLength(0);
   });
 
@@ -273,7 +275,7 @@ describe("pause, resume, edit, delete", () => {
 
     await as.mutation(api.reminders.update, { id, ...hourly({ repeatMode: "count", repeatTimes: 2 }) });
     const r = await getReminder(t, id);
-    expect(r.active).toBe(false);
+    expect(r.status).not.toBe("active");
     expect(r.firedCount).toBe(2);
     expect(await pendingJobs(t)).toHaveLength(0);
   });
@@ -315,6 +317,6 @@ describe("validation", () => {
 
   test("requires sign-in", async () => {
     const t = newTest();
-    await expect(t.query(api.reminders.list, {})).rejects.toThrow(/notAuthenticated/);
+    await expect(t.query(api.reminders.list, activePage)).rejects.toThrow(/notAuthenticated/);
   });
 });
