@@ -16,12 +16,15 @@ function SettingsButton() {
   );
 }
 
+// title stays the app name (it's also the browser tab title on web);
+// tabBarLabel and headerTitle name the tab.
 export default function TabsLayout() {
   const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
         headerTitleAlign: "left",
+        title: t("common.appName"),
         headerRight: () => <SettingsButton />,
         // Lines the icon up with the content's 16px gutter (the ghost button
         // already adds 10px around the icon).
@@ -30,14 +33,16 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t("tabs.reminders"),
+          headerTitle: t("common.appName"),
+          tabBarLabel: t("tabs.reminders"),
           tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="tags"
         options={{
-          title: t("tabs.tags"),
+          headerTitle: t("tabs.tags"),
+          tabBarLabel: t("tabs.tags"),
           tabBarIcon: ({ color, size }) => <Tag color={color} size={size} />,
         }}
       />
