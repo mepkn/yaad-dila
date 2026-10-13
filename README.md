@@ -28,11 +28,14 @@ Requires Node 22.18+ (`.nvmrc` pins 22).
 ### 1. Install and run Convex locally
 
 ```sh
-npm install
+npm install               # backend: convex, tests
+npm run mobile:install    # the app has its own node_modules in mobile/
+printf 'EXPO_PUBLIC_CONVEX_URL=\nEXPO_PUBLIC_CONVEX_SITE_URL=\n' > .env.local   # first time only
 npx convex dev            # first run: choose a local deployment (no account needed)
 ```
 
-This writes `EXPO_PUBLIC_CONVEX_URL` to `.env.local`. Keep it running; it redeploys whenever `convex/` changes.
+This writes `EXPO_PUBLIC_CONVEX_URL` to `.env.local` (the empty line tells it the name; Expo isn't
+in the root `package.json`, so it would otherwise write `CONVEX_URL`). Keep it running; it redeploys whenever `convex/` changes.
 
 > **Phone vs. local backend:** `127.0.0.1` on a phone is the phone itself.
 > - **Android emulator:** set `EXPO_PUBLIC_CONVEX_URL=http://10.0.2.2:3210`.
@@ -75,17 +78,18 @@ Convex → Expo Push → FCM → device.
 | `npx convex dev` | Local Convex backend with hot reload |
 | `npx expo start --dev-client` | Metro for the development build |
 | `npm run android` | Build and install the development build on a USB phone |
-| `npm run typecheck` | App and `convex/` typecheck |
-| `npm run lint` | ESLint (Expo config) |
+| `npm run mobile:install` | Install the app's dependencies in `mobile/` |
+| `npm run typecheck` | `convex/` typecheck |
+| `npm run lint` | ESLint for `convex/` and `scripts/` |
 | `npm test` | convex-test: scheduling math, fire flow, authz |
-| `npm run check` | Typecheck, lint and tests |
+| `npm run check` | Typecheck, lint and tests, then the same for `mobile/` |
 | `npm run icons` | Regenerate the app icon and splash images |
 | `npm run deploy` | Same as `deploy:backend` |
 | `npm run deploy:backend` | Checks, then deploys `convex/` to production |
 | `npm run build:android:preview` | Installable APK, built on EAS cloud |
-| `npm run build:android:preview:local` | The same APK, built on this Mac into `dist/` |
+| `npm run build:android:preview:local` | The same APK, built on this Mac into `mobile/dist/` |
 | `npm run build:android:production` | Play Store AAB on EAS cloud (version code auto-increments) |
-| `npm run build:android:production:local` | The same AAB, built locally into `dist/` |
+| `npm run build:android:production:local` | The same AAB, built locally into `mobile/dist/` |
 | `npm run submit:android` | Upload the latest production build to Google Play |
 | `npm run eas -- <args>` | Any other `eas` command as the personal account |
 
@@ -114,8 +118,8 @@ Run it whenever `convex/` changes.
 #### Push credentials (FCM)
 
 1. In the [Firebase console](https://console.firebase.google.com), add an Android app
-   `com.pknspace.yaaddila`. Its `google-services.json` is committed in the project root
-   and referenced from `app.json`.
+   `com.pknspace.yaaddila`. Its `google-services.json` is committed in `mobile/`
+   and referenced from `mobile/app.json`.
 2. In Firebase, go to Project settings → Service accounts and click **Generate new private key**.
 3. Run `npm run eas -- credentials`, then choose Android → **Google Service Account** →
    **FCM V1** and upload the JSON. Don't commit that key.
@@ -125,7 +129,7 @@ Run it whenever `convex/` changes.
 ```sh
 npm run build:android:preview:local   # or :preview to build on EAS cloud
 adb uninstall com.pknspace.yaaddila   # first time: remove the development build
-adb install -r dist/yaad-dila-preview-*.apk
+adb install -r mobile/dist/yaad-dila-preview-*.apk
 ```
 
 A release build bundles the JavaScript and talks to the production backend. It doesn't need
@@ -156,7 +160,7 @@ uploads new builds.
 └──────────────┘                      └──────────────────────────────┘
 ```
 
-- **The app** (`src/`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `src/components/ui/`, and screens only use the app's own wrappers in `src/components/cmp/cmp-*.tsx`.
+- **The app** (`mobile/src/`, its own `package.json`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `mobile/src/components/ui/`, and screens only use the app's own wrappers in `mobile/src/components/cmp/cmp-*.tsx`.
 - **Convex** (`convex/`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
   - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. The app keeps its tokens in `expo-secure-store`.

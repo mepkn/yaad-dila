@@ -30,10 +30,6 @@
       ],
       "googleServicesFile": "./google-services.json"
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       [
@@ -80,6 +76,10 @@
         "projectId": "d6affc9d-5daa-423f-92da-9ca6f5fbb006"
       }
     },
-    "owner": "mepkn"
+    "owner": "mepkn",
+    "platforms": [
+      "android",
+      "ios"
+    ]
   }
 }
