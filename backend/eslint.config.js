@@ -3,9 +3,9 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// The backend and scripts. The app in mobile/ has its own config.
+// The Convex backend. The apps in mobile/ has its own config.
 export default defineConfig([
-  globalIgnores(['dist', 'mobile', 'convex/_generated']),
+  globalIgnores(['convex/_generated']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],

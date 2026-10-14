@@ -28,23 +28,27 @@ Requires Node 22.18+ (`.nvmrc` pins 22).
 ### 1. Install and run Convex locally
 
 ```sh
-npm install               # backend: convex, tests
-npm run mobile:install    # the app has its own node_modules in mobile/
+cd backend
+npm install               # convex, tests
 printf 'EXPO_PUBLIC_CONVEX_URL=\nEXPO_PUBLIC_CONVEX_SITE_URL=\n' > .env.local   # first time only
-npx convex dev            # first run: choose a local deployment (no account needed)
+npm run dev               # npx convex dev; first run: choose a local deployment
+cd ../mobile && npm install   # the app has its own node_modules
 ```
 
-This writes `EXPO_PUBLIC_CONVEX_URL` to `.env.local` (the empty line tells it the name; Expo isn't
-in the root `package.json`, so it would otherwise write `CONVEX_URL`). Keep it running; it redeploys whenever `convex/` changes.
+This writes `EXPO_PUBLIC_CONVEX_URL` to `backend/.env.local` (the empty line tells it the name; Expo
+isn't in `backend/`, so it would otherwise write `CONVEX_URL`). It's the only dev env file: the app's
+`start`/`android` scripts read it. Keep `convex dev` running; it redeploys whenever `backend/convex/` changes.
 
 > **Phone vs. local backend:** `127.0.0.1` on a phone is the phone itself.
 > - **Android emulator:** set `EXPO_PUBLIC_CONVEX_URL=http://10.0.2.2:3210`.
 > - **USB device:** run `adb reverse tcp:3210 tcp:3210` and `adb reverse tcp:3211 tcp:3211`.
 > - **Device on the same Wi-Fi:** use your computer's LAN IP.
 >
-> Restart Metro after changing `.env.local`.
+> Restart Metro after changing `backend/.env.local`.
 
 ### 2. Configure Convex Auth (once per deployment)
+
+In `backend/`:
 
 ```sh
 npx @convex-dev/auth      # interactive: generates JWT_PRIVATE_KEY + JWKS
@@ -61,9 +65,11 @@ If you enable "Enhanced security for push notifications" in the Expo project, al
 
 Remote push doesn't work in Expo Go, so the app runs as a development build:
 
+In `mobile/`:
+
 ```sh
 npm run android                  # build and install the dev client on a USB phone
-npx expo start --dev-client      # Metro; don't use CI=1, it turns off reloads
+npm start                        # Metro; don't use CI=1, it turns off reloads
 ```
 
 After you sign in, the app creates the high-importance `reminders` notification channel,
@@ -73,25 +79,22 @@ Convex → Expo Push → FCM → device.
 
 ## Scripts
 
+No root `package.json`: run each part's scripts in its folder.
+
 | Command | What it does |
 |---|---|
-| `npx convex dev` | Local Convex backend with hot reload |
-| `npx expo start --dev-client` | Metro for the development build |
-| `npm run android` | Build and install the development build on a USB phone |
-| `npm run mobile:install` | Install the app's dependencies in `mobile/` |
-| `npm run typecheck` | `convex/` typecheck |
-| `npm run lint` | ESLint for `convex/` and `scripts/` |
-| `npm test` | convex-test: scheduling math, fire flow, authz |
-| `npm run check` | Typecheck, lint and tests, then the same for `mobile/` |
-| `npm run icons` | Regenerate the app icon and splash images |
-| `npm run deploy` | Same as `deploy:backend` |
-| `npm run deploy:backend` | Checks, then deploys `convex/` to production |
-| `npm run build:android:preview` | Installable APK, built on EAS cloud |
-| `npm run build:android:preview:local` | The same APK, built on this Mac into `mobile/dist/` |
-| `npm run build:android:production` | Play Store AAB on EAS cloud (version code auto-increments) |
-| `npm run build:android:production:local` | The same AAB, built locally into `mobile/dist/` |
-| `npm run submit:android` | Upload the latest production build to Google Play |
-| `npm run eas -- <args>` | Any other `eas` command as the personal account |
+| `scripts/check.sh` | Every part's checks (backend, then mobile). Run before committing |
+| `scripts/deploy-backend.sh` | Checks, then deploys `backend/convex/` to production (`DRY_RUN=1` previews) |
+| `scripts/build-android.sh preview local` | Installable APK, built on this Mac into `mobile/dist/` (`cloud` builds on EAS) |
+| `scripts/build-android.sh production cloud` | Play Store AAB on EAS cloud (version code auto-increments); `local` builds into `mobile/dist/` |
+| `scripts/eas.sh <args>` | Any `eas` command as the personal account, e.g. `submit --platform android --profile production` |
+| `backend/`: `npm run dev` | Local Convex backend with hot reload |
+| `backend/`: `npm run typecheck` / `lint` / `test` | Backend typecheck, ESLint, convex-test (scheduling math, fire flow, authz) |
+| `backend/`: `npm run check` | All three |
+| `mobile/`: `npm start` | Metro for the development build |
+| `mobile/`: `npm run android` | Build and install the development build on a USB phone |
+| `mobile/`: `npm run check` | App typecheck and lint |
+| `mobile/`: `npm run icons` | Regenerate the app icon and splash images |
 
 ## Deployment
 
@@ -100,18 +103,18 @@ The app is two parts. The backend is the Convex production deployment `formal-se
 
 ### One-time setup (already done)
 
-- `.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `.env.example`.
-- `.eas-token` (git-ignored) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
+- `backend/.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `backend/.env.example`.
+- `mobile/.eas-token` (git-ignored, see `mobile/.env.example`) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
 - On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://` and `ALLOWED_EMAILS` are set.
 - The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
 
 ### Backend
 
 ```sh
-npm run deploy        # checks, then npx convex deploy to production
+scripts/deploy-backend.sh        # checks, then npx convex deploy to production
 ```
 
-Run it whenever `convex/` changes.
+Run it whenever `backend/convex/` changes.
 
 ### Android
 
@@ -121,13 +124,13 @@ Run it whenever `convex/` changes.
    `com.pknspace.yaaddila`. Its `google-services.json` is committed in `mobile/`
    and referenced from `mobile/app.json`.
 2. In Firebase, go to Project settings → Service accounts and click **Generate new private key**.
-3. Run `npm run eas -- credentials`, then choose Android → **Google Service Account** →
+3. Run `scripts/eas.sh credentials`, then choose Android → **Google Service Account** →
    **FCM V1** and upload the JSON. Don't commit that key.
 
 #### Preview (APK)
 
 ```sh
-npm run build:android:preview:local   # or :preview to build on EAS cloud
+scripts/build-android.sh preview local   # or `preview cloud` to build on EAS
 adb uninstall com.pknspace.yaaddila   # first time: remove the development build
 adb install -r mobile/dist/yaad-dila-preview-*.apk
 ```
@@ -138,9 +141,9 @@ which is why the development build has to be uninstalled first.
 
 #### Production (Play Store, later)
 
-`npm run build:android:production` builds an AAB. Before the first release you need a
+`scripts/build-android.sh production cloud` builds an AAB. Before the first release you need a
 Google Play developer account, a store listing, a privacy policy and the Data safety form.
-The first upload is done by hand in the Play Console; after that, `npm run submit:android`
+The first upload is done by hand in the Play Console; after that, `scripts/eas.sh submit --platform android --profile production`
 uploads new builds.
 
 ## How it works
@@ -161,7 +164,7 @@ uploads new builds.
 ```
 
 - **The app** (`mobile/src/`, its own `package.json`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `mobile/src/components/ui/`, and screens only use the app's own wrappers in `mobile/src/components/cmp/cmp-*.tsx`.
-- **Convex** (`convex/`) is the entire backend.
+- **Convex** (`backend/convex/`, its own `package.json`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
   - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. The app keeps its tokens in `expo-secure-store`.
   - `reminders.ts` and `tags.ts`: the public API. Every function gets the user from `getAuthUserId` and checks that the user owns every document it touches.
