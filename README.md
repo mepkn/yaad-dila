@@ -14,14 +14,14 @@ Platform: Android (sideloaded APK; Play Store later).
 - A Search tab that searches every reminder's title, message and note on the server.
 - Accounts by email and password; sign-up confirms the email with a 6-digit code, and "Forgot password?" resets it with one. Only emails in `ALLOWED_EMAILS` can sign up or sign in.
 - Tools for AI clients through [kunji](https://kunji.pknspace.com): `list_upcoming`, `search_reminders`, `add_reminder`, `snooze_reminder`, `set_reminder_active`.
-- Voice reminders: say "remind me to drink water every 2 hours from 9am, 5 times" and the form is filled in (Google Gemini with your own API key).
+- Voice reminders: say "remind me to drink water every 2 hours from 9am, 5 times" and the form is filled in (your own AI key, saved once at [kunji](https://kunji.pknspace.com) under the same email).
 - English and Hindi. Light, dark or system theme.
 
 ## Stack
 
 Expo (SDK 57) · Expo Router · TypeScript · NativeWind + React Native Reusables ·
 Convex (database, auth, scheduler, push sending) · Convex Auth · expo-notifications +
-Expo Push (FCM) · Google Gemini · i18next.
+Expo Push (FCM) · kunji AI gateway · i18next.
 
 ## Development
 
@@ -179,4 +179,4 @@ uploads new builds.
   - **Units and time zones.** Minutes and hours are exact durations. Days, weeks and months follow the local calendar of the reminder's `timeZone`, which is the IANA zone the device sent when the reminder was saved.
   - **Edit, pause, resume, delete.** Editing, pausing and deleting cancel the pending run. Resuming and editing schedule the first occurrence that hasn't passed yet; missed occurrences are skipped and don't count toward `repeatTimes`.
   - **Failures.** If no device is registered or Expo returns an error, the schedule still advances and the reason goes into `lastError`. The next successful send clears it. Tokens that Expo reports as `DeviceNotRegistered` are deleted.
-- **Voice.** On-device speech-to-text (`expo-speech-recognition`) produces text, and typed text works too. The app sends that text straight to Gemini (`gemini-flash-latest`) with the user's own API key, which is kept in SecureStore. The backend is never involved.
+- **Voice.** On-device speech-to-text (`expo-speech-recognition`) produces text, and typed text works too. The app sends that text to the `voice.parse` action, which asks kunji's gateway (`lib/kunji.ts` `generate`, `fast` model, JSON Schema answer) to fill the reminder fields with the user's own AI key, found by their email. The prompt and the checks on the answer are in `lib/voice.ts`. yaad-dila holds no AI keys; without one, the app points to kunji.pknspace.com. An old Gemini key left on the device is deleted when the voice screen opens.

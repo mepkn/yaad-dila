@@ -20,11 +20,13 @@ import type * as lib_kunji from "../lib/kunji.js";
 import type * as lib_schedule from "../lib/schedule.js";
 import type * as lib_scheduling from "../lib/scheduling.js";
 import type * as lib_tagLinks from "../lib/tagLinks.js";
+import type * as lib_voice from "../lib/voice.js";
 import type * as otp from "../otp.js";
 import type * as pushTokens from "../pushTokens.js";
 import type * as reminders from "../reminders.js";
 import type * as tags from "../tags.js";
 import type * as users from "../users.js";
+import type * as voice from "../voice.js";
 
 import type {
   ApiFromModules,
@@ -45,11 +47,13 @@ declare const fullApi: ApiFromModules<{
   "lib/schedule": typeof lib_schedule;
   "lib/scheduling": typeof lib_scheduling;
   "lib/tagLinks": typeof lib_tagLinks;
+  "lib/voice": typeof lib_voice;
   otp: typeof otp;
   pushTokens: typeof pushTokens;
   reminders: typeof reminders;
   tags: typeof tags;
   users: typeof users;
+  voice: typeof voice;
 }>;
 
 /**

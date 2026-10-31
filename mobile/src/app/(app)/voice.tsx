@@ -1,31 +1,37 @@
-import { router, useFocusEffect } from "expo-router";
+import { useAction } from "convex/react";
+import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { Mic, Sparkles, Square } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
+import { api } from "@convex/_generated/api";
 import { CmpButton } from "@/components/cmp/cmp-button";
 import { CmpTextarea } from "@/components/cmp/cmp-field";
 import { CmpKeyboardAwareScrollView } from "@/components/cmp/cmp-keyboard-aware-scroll-view";
 import { CmpText } from "@/components/cmp/cmp-text";
 import { encodeDraft } from "@/lib/draft";
-import { GeminiError, getGeminiKey, parseReminder } from "@/lib/gemini";
+import { errorCode } from "@/lib/errors";
 
-// Speech is recognised on the device; the resulting text (spoken or typed)
-// is sent to Gemini with the user's own key to prefill the reminder form.
+// Speech is recognised on the device; the resulting text (spoken or typed) goes
+// to the backend, which asks the user's own AI key through kunji for the
+// reminder fields and prefills the form with them.
+const KNOWN = new Set(["noAiKey", "aiKeyRefused", "aiRateLimited", "notConnected", "aiUnavailable", "unparseable"]);
+
 export default function VoiceScreen() {
   const { t, i18n } = useTranslation();
-  const [apiKey, setApiKey] = useState<string | null | undefined>(undefined);
+  const parseReminder = useAction(api.voice.parse);
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string>();
 
-  useFocusEffect(
-    useCallback(() => {
-      void getGeminiKey().then(setApiKey);
-    }, []),
-  );
+  // Voice used to call Gemini with a key kept on the device; kunji holds AI
+  // keys now, so drop any old one.
+  useEffect(() => {
+    void SecureStore.deleteItemAsync("gemini.apiKey").catch(() => {});
+  }, []);
 
   useSpeechRecognitionEvent("start", () => setListening(true));
   useSpeechRecognitionEvent("end", () => setListening(false));
@@ -60,36 +66,19 @@ export default function VoiceScreen() {
   }
 
   async function parse() {
-    if (!apiKey) return;
     if (listening) ExpoSpeechRecognitionModule.stop();
     setParsing(true);
     setError(undefined);
     try {
-      const draft = await parseReminder(text.trim(), apiKey);
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const draft = await parseReminder({ text: text.trim(), timeZone });
       router.replace({ pathname: "/reminder/new", params: { draft: encodeDraft(draft) } });
     } catch (e) {
-      const kind = e instanceof GeminiError ? e.kind : "unparseable";
-      setError(t(`voice.errors.${kind}`));
+      const code = errorCode(e);
+      setError(t(`voice.errors.${code && KNOWN.has(code) ? code : "aiUnavailable"}`));
     } finally {
       setParsing(false);
     }
-  }
-
-  if (apiKey === undefined) return null;
-
-  if (apiKey === null) {
-    return (
-      <View className="bg-background flex-1 justify-center gap-4 p-6">
-        <CmpText className="text-center">{t("voice.needKey")}</CmpText>
-        <CmpButton
-          label={t("voice.goToSettings")}
-          onPress={() => {
-            router.back();
-            router.navigate({ pathname: "/settings", params: { focus: "voiceKey" } });
-          }}
-        />
-      </View>
-    );
   }
 
   return (
@@ -97,6 +86,7 @@ export default function VoiceScreen() {
       className="bg-background flex-1"
       contentContainerClassName="gap-5 p-5">
       <CmpText variant="muted">{t("voice.intro")}</CmpText>
+      <CmpText variant="muted" className="text-sm">{t("voice.aiHint")}</CmpText>
       <CmpTextarea
         value={text}
         onChangeText={setText}
