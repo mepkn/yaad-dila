@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { reminderIdFrom } from "@/lib/notifications";
 import { PushProvider } from "@/lib/push";
+import { useUpdateCheck } from "@/lib/use-update-check";
 
 // Opens the reminder a tapped notification belongs to, including the tap that
 // launched the app.
@@ -25,6 +26,7 @@ function useNotificationDeepLinks() {
 export default function AppLayout() {
   const { t } = useTranslation();
   useNotificationDeepLinks();
+  useUpdateCheck();
   return (
     <PushProvider>
       <Stack>

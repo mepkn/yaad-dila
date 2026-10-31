@@ -14,6 +14,8 @@ import { errorMessage, lastErrorMessage } from "@/lib/errors";
 import type { LanguagePref } from "@/lib/i18n";
 import { usePreferences, type ThemePref } from "@/lib/preferences";
 import { useLogOut, usePush } from "@/lib/push";
+import { currentCommit } from "@/lib/update";
+import { runUpdateCheck } from "@/lib/use-update-check";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -147,6 +149,10 @@ export default function SettingsScreen() {
             label: t(`settings.languages.${value}`),
           }))}
         />
+      </Section>
+      <Section title={t("update.section")}>
+        <CmpText variant="muted">{t("update.version", { current: currentCommit })}</CmpText>
+        <CmpButton variant="outline" label={t("update.check")} onPress={() => void runUpdateCheck(t, true)} />
       </Section>
     </CmpKeyboardAwareScrollView>
   );

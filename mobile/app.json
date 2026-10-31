@@ -26,7 +26,8 @@
       "package": "com.pknspace.yaaddila",
       "permissions": [
         "POST_NOTIFICATIONS",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "REQUEST_INSTALL_PACKAGES"
       ],
       "googleServicesFile": "./google-services.json"
     },
