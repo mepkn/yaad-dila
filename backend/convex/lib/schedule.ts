@@ -100,6 +100,18 @@ function fromLocal(l: LocalParts, timeZone: string): number {
   return Math.max(first, second);
 }
 
+// "2026-11-01T09:00" (seconds optional) read as wall time in timeZone, for
+// times given without an offset. Null when malformed.
+export function parseLocalDateTime(text: string, timeZone: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text.trim());
+  if (!m) return null;
+  const [year, month, day, hour, minute, second] = m.slice(1).map((n) => Number(n ?? 0));
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month - 1) || hour > 23 || minute > 59 || second > 59) {
+    return null;
+  }
+  return fromLocal({ year, month: month - 1, day, hour, minute, second, ms: 0 }, timeZone);
+}
+
 function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 }

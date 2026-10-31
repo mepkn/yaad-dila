@@ -13,6 +13,7 @@ Platform: Android (sideloaded APK; Play Store later).
 - Tags to group reminders; tap a tag to see all its reminders.
 - A Search tab that searches every reminder's title, message and note on the server.
 - Accounts by email and password; sign-up confirms the email with a 6-digit code, and "Forgot password?" resets it with one. Only emails in `ALLOWED_EMAILS` can sign up or sign in.
+- Tools for AI clients through [kunji](https://kunji.pknspace.com): `list_upcoming`, `search_reminders`, `add_reminder`, `snooze_reminder`, `set_reminder_active`.
 - Voice reminders: say "remind me to drink water every 2 hours from 9am, 5 times" and the form is filled in (Google Gemini with your own API key).
 - English and Hindi. Light, dark or system theme.
 
@@ -106,7 +107,7 @@ The app is two parts. The backend is the Convex production deployment `formal-se
 
 - `backend/.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `backend/.env.example`.
 - `mobile/.eas-token` (git-ignored, see `mobile/.env.example`) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
-- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://auth` `ALLOWED_EMAILS` and `RESEND_API_KEY` are set.
+- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://auth` `ALLOWED_EMAILS`, `RESEND_API_KEY`, `KUNJI_SECRET` and `KUNJI_URL` are set.
 - The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
 
 ### Backend
@@ -169,6 +170,7 @@ uploads new builds.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
   - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. Sign-up and password reset need a 6-digit code by email (`otp.ts`, sent through Resend from `Yaad Dila <noreply@send.pknspace.com>`; without `RESEND_API_KEY` the code is only logged in the `convex dev` output). Users from before verification are marked verified by the one-off `migrations:markUsersVerified`. The app keeps its tokens in `expo-secure-store`.
   - `reminders.ts` and `tags.ts`: the public API. Every function gets the user from `getAuthUserId` and checks that the user owns every document it touches.
+  - `kunji.ts` + `lib/kunji.ts`: the kunji app contract (`GET /kunji/tools`, `POST /kunji/access`, `POST /kunji/call`, Bearer `KUNJI_SECRET`). Tools run as the single verified user with kunji's email, through the same helpers as the app (`insertReminder`, `setReminderActive`). Snooze sets the next fire to now + N minutes only after a notification was sent; the fire after it returns to the regular times.
   - `fire.ts`: the scheduled `fire` action, then `recordFire`.
   - `lib/schedule.ts`: the scheduling math as pure functions. The app imports it too.
 - **Scheduling.** There are no cron jobs. Each active reminder has exactly one pending `ctx.scheduler.runAt(nextFireAt, internal.fire.fire)` run, and its id is stored in `scheduledFnId`.

@@ -28,7 +28,7 @@ const reminderFields = v.object({
   timeZone: v.string(),
 });
 
-type ReminderInput = typeof reminderFields.type;
+export type ReminderInput = typeof reminderFields.type;
 
 const reminderDoc = schema.doc("reminders");
 
@@ -110,6 +110,49 @@ async function syncReminderTags(
   }
 }
 
+// Creates and schedules a reminder; shared by `create` and kunji's add_reminder.
+export async function insertReminder(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  input: ReminderInput,
+): Promise<Id<"reminders">> {
+  const fields = await normalise(ctx, userId, input);
+  const id = await ctx.db.insert("reminders", {
+    ...fields,
+    userId,
+    searchText: searchText(fields),
+    firedCount: 0,
+    nextFireAt: nextFromNow(fields, Date.now()),
+    status: "active",
+  });
+  await syncReminderTags(ctx, userId, id, fields.tagIds);
+  await reschedule(ctx, id);
+  return id;
+}
+
+// Pauses or resumes; shared by `setActive` and kunji's set_reminder_active.
+export async function setReminderActive(
+  ctx: MutationCtx,
+  reminder: Doc<"reminders">,
+  active: boolean,
+): Promise<void> {
+  if (reminder.status === "finished") {
+    if (active) throw new ConvexError("reminderFinished");
+    return;
+  }
+  if ((reminder.status === "active") === active) return;
+  if (active) {
+    // Resume skips any fire times missed while paused.
+    await ctx.db.patch("reminders", reminder._id, {
+      status: "active",
+      nextFireAt: nextFromNow(reminder, Date.now()),
+    });
+  } else {
+    await ctx.db.patch("reminders", reminder._id, { status: "paused" });
+  }
+  await reschedule(ctx, reminder._id);
+}
+
 // One status, paginated. Active and paused come soonest next fire first;
 // finished comes most recently finished first.
 export const list = query({
@@ -181,19 +224,7 @@ export const create = mutation({
   returns: v.id("reminders"),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-
-    const fields = await normalise(ctx, userId, args);
-    const id = await ctx.db.insert("reminders", {
-      ...fields,
-      userId,
-      searchText: searchText(fields),
-      firedCount: 0,
-      nextFireAt: nextFromNow(fields, Date.now()),
-      status: "active",
-    });
-    await syncReminderTags(ctx, userId, id, fields.tagIds);
-    await reschedule(ctx, id);
-    return id;
+    return await insertReminder(ctx, userId, args);
   },
 });
 
@@ -226,21 +257,7 @@ export const setActive = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const reminder = await getOwnedReminder(ctx, userId, args.id);
-    if (reminder.status === "finished") {
-      if (args.active) throw new ConvexError("reminderFinished");
-      return null;
-    }
-    if ((reminder.status === "active") === args.active) return null;
-    if (args.active) {
-      // Resume skips any fire times missed while paused.
-      await ctx.db.patch("reminders", reminder._id, {
-        status: "active",
-        nextFireAt: nextFromNow(reminder, Date.now()),
-      });
-    } else {
-      await ctx.db.patch("reminders", reminder._id, { status: "paused" });
-    }
-    await reschedule(ctx, reminder._id);
+    await setReminderActive(ctx, reminder, args.active);
     return null;
   },
 });
