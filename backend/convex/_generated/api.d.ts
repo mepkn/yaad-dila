@@ -20,7 +20,6 @@ import type * as lib_kunji from "../lib/kunji.js";
 import type * as lib_schedule from "../lib/schedule.js";
 import type * as lib_scheduling from "../lib/scheduling.js";
 import type * as lib_tagLinks from "../lib/tagLinks.js";
-import type * as migrations from "../migrations.js";
 import type * as otp from "../otp.js";
 import type * as pushTokens from "../pushTokens.js";
 import type * as reminders from "../reminders.js";
@@ -46,7 +45,6 @@ declare const fullApi: ApiFromModules<{
   "lib/schedule": typeof lib_schedule;
   "lib/scheduling": typeof lib_scheduling;
   "lib/tagLinks": typeof lib_tagLinks;
-  migrations: typeof migrations;
   otp: typeof otp;
   pushTokens: typeof pushTokens;
   reminders: typeof reminders;
