@@ -24,18 +24,23 @@ export function errorMessage(t: TFunction, error: unknown): string {
   return t("common.somethingWentWrong");
 }
 
-// Convex Auth reports bad credentials and duplicate accounts as plain errors.
-export function authErrorMessage(t: TFunction, error: unknown, flow: "signIn" | "signUp"): string {
+export type AuthStep = "signIn" | "signUp" | "verify" | "forgot" | "reset";
+
+// Convex Auth reports bad credentials, duplicate accounts and wrong codes as plain errors.
+export function authErrorMessage(t: TFunction, error: unknown, step: AuthStep): string {
   const code = errorCode(error);
   if (code) return translateCode(t, code) ?? t("common.somethingWentWrong");
   const message = error instanceof Error ? error.message : "";
   if (/already exists/i.test(message)) return t("auth.errors.accountExists");
-  if (flow === "signIn" && /InvalidAccountId|InvalidSecret|Invalid credentials/i.test(message)) {
+  if (/send the email/i.test(message)) return t("auth.errors.emailFailed");
+  if (step === "verify" || step === "reset") return t("auth.errors.invalidCode");
+  if (step === "forgot") return t("auth.errors.resetFailed");
+  if (step === "signIn" && /InvalidAccountId|InvalidSecret|Invalid credentials/i.test(message)) {
     return t("auth.errors.invalidCredentials");
   }
   // Production hides plain error text ("Server Error"). Validation failures are
   // ConvexErrors handled above, so a remaining sign-up failure is a taken email.
-  return flow === "signIn" ? t("auth.errors.invalidCredentials") : t("auth.errors.accountExists");
+  return step === "signIn" ? t("auth.errors.invalidCredentials") : t("auth.errors.accountExists");
 }
 
 // reminders.lastError is either "noDevices" or a raw Expo error message.

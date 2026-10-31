@@ -12,6 +12,7 @@ Platform: Android (sideloaded APK; Play Store later).
 - Pause, resume, edit and delete. Active / Paused / Finished lists, paginated on the server.
 - Tags to group reminders; tap a tag to see all its reminders.
 - A Search tab that searches every reminder's title, message and note on the server.
+- Accounts by email and password; sign-up confirms the email with a 6-digit code, and "Forgot password?" resets it with one. Only emails in `ALLOWED_EMAILS` can sign up or sign in.
 - Voice reminders: say "remind me to drink water every 2 hours from 9am, 5 times" and the form is filled in (Google Gemini with your own API key).
 - English and Hindi. Light, dark or system theme.
 
@@ -52,7 +53,7 @@ In `backend/`:
 
 ```sh
 npx @convex-dev/auth      # interactive: generates JWT_PRIVATE_KEY + JWKS
-npx convex env set SITE_URL yaaddila://
+npx convex env set SITE_URL yaaddila://auth   # needs a host: Convex Auth strips a trailing "/"
 npx convex env set ALLOWED_EMAILS you@example.com   # comma-separated; nobody else can sign up or sign in
 ```
 
@@ -105,7 +106,7 @@ The app is two parts. The backend is the Convex production deployment `formal-se
 
 - `backend/.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `backend/.env.example`.
 - `mobile/.eas-token` (git-ignored, see `mobile/.env.example`) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
-- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://` and `ALLOWED_EMAILS` are set.
+- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://auth` `ALLOWED_EMAILS` and `RESEND_API_KEY` are set.
 - The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
 
 ### Backend
@@ -166,7 +167,7 @@ uploads new builds.
 - **The app** (`mobile/src/`, its own `package.json`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `mobile/src/components/ui/`, and screens only use the app's own wrappers in `mobile/src/components/cmp/cmp-*.tsx`.
 - **Convex** (`backend/convex/`, its own `package.json`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
-  - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. The app keeps its tokens in `expo-secure-store`.
+  - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. Sign-up and password reset need a 6-digit code by email (`otp.ts`, sent through Resend from `Yaad Dila <noreply@send.pknspace.com>`; without `RESEND_API_KEY` the code is only logged in the `convex dev` output). Users from before verification are marked verified by the one-off `migrations:markUsersVerified`. The app keeps its tokens in `expo-secure-store`.
   - `reminders.ts` and `tags.ts`: the public API. Every function gets the user from `getAuthUserId` and checks that the user owns every document it touches.
   - `fire.ts`: the scheduled `fire` action, then `recordFire`.
   - `lib/schedule.ts`: the scheduling math as pure functions. The app imports it too.
