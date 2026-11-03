@@ -1,7 +1,7 @@
 import Resend from "@auth/core/providers/resend";
 import { env } from "./lib/env";
 
-const FROM = "Yaad Dila <noreply@send.pknspace.com>";
+const FROM = "Suchna <noreply@send.pknspace.com>";
 
 /** A 6-digit code; the modulo bias over 2^32 is negligible. */
 function code(): string {
@@ -34,8 +34,8 @@ export const ResendOTP = Resend({
   async sendVerificationRequest({ identifier: email, token }) {
     await sendCode(
       email,
-      `${token} is your Yaad Dila code`,
-      `Your Yaad Dila verification code is ${token}. It expires in 15 minutes.`,
+      `${token} is your Suchna code`,
+      `Your Suchna verification code is ${token}. It expires in 15 minutes.`,
     );
   },
 });
@@ -49,8 +49,8 @@ export const ResendOTPReset = Resend({
   async sendVerificationRequest({ identifier: email, token }) {
     await sendCode(
       email,
-      `${token} is your Yaad Dila reset code`,
-      `Your Yaad Dila password reset code is ${token}. It expires in 15 minutes. If you didn't ask for it, ignore this email.`,
+      `${token} is your Suchna reset code`,
+      `Your Suchna password reset code is ${token}. It expires in 15 minutes. If you didn't ask for it, ignore this email.`,
     );
   },
 });

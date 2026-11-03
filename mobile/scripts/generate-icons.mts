@@ -1,4 +1,4 @@
-// Redraws the old Yaad Dila bell-with-bolt mark in the pastel-blue palette.
+// Redraws the old Suchna bell-with-bolt mark in the pastel-blue palette.
 import { Resvg } from "@resvg/resvg-js";
 import { writeFileSync } from "node:fs";
 

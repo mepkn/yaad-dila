@@ -8,8 +8,8 @@ import { Platform } from "react-native";
 // the latest GitHub release means an update. The APK is downloaded into the
 // app's cache and handed to Android's installer; the next launch deletes it.
 
-const REPO = "mepkn/yaad-dila";
-const ASSET = "yaad-dila.apk";
+const REPO = "mepkn/suchna";
+const ASSET = "suchna.apk";
 const UPDATE_DIR = new Directory(Paths.cache, "update");
 
 export const currentCommit = process.env.EXPO_PUBLIC_COMMIT || "dev";

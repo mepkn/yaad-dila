@@ -9,7 +9,7 @@ import { isValidTimeZone, parseLocalDateTime } from "./lib/schedule";
 import { insertReminder, setReminderActive } from "./reminders";
 import { intervalUnit, repeatMode, reminderStatus } from "./schema";
 
-// Yaad Dila's tools for kunji (kunji SPEC.md → App contract). Each runs as the
+// Suchna's tools for kunji (kunji SPEC.md → App contract). Each runs as the
 // user kunji named and only ever sees that user's reminders. Writes:
 // add_reminder, snooze_reminder and set_reminder_active; nothing deletes.
 
@@ -236,7 +236,7 @@ export const tools: KunjiTool[] = [
   {
     name: "list_upcoming",
     description:
-      "List the user's active Yaad Dila reminders (repeating push reminders), soonest next notification first: title, message, schedule, next time (ISO and in the reminder's own time zone), times already sent and tags. Paused and finished reminders are not included.",
+      "List the user's active Suchna reminders (repeating push reminders), soonest next notification first: title, message, schedule, next time (ISO and in the reminder's own time zone), times already sent and tags. Paused and finished reminders are not included.",
     inputSchema: {
       type: "object",
       properties: {
@@ -255,7 +255,7 @@ export const tools: KunjiTool[] = [
   {
     name: "search_reminders",
     description:
-      "Search all of the user's Yaad Dila reminders (active, paused and finished) by words in the title, message or note; the last word matches as a prefix. Best match first. Returns each reminder's id, which other tools take.",
+      "Search all of the user's Suchna reminders (active, paused and finished) by words in the title, message or note; the last word matches as a prefix. Best match first. Returns each reminder's id, which other tools take.",
     inputSchema: {
       type: "object",
       properties: {
@@ -277,7 +277,7 @@ export const tools: KunjiTool[] = [
   {
     name: "add_reminder",
     description:
-      "Create a Yaad Dila reminder: a push notification on the user's phone, once or repeating every N minutes, hours, days, weeks or months, forever or a set number of times. Day, week and month steps keep the same local time in the reminder's time zone. Returns the new reminder.",
+      "Create a Suchna reminder: a push notification on the user's phone, once or repeating every N minutes, hours, days, weeks or months, forever or a set number of times. Day, week and month steps keep the same local time in the reminder's time zone. Returns the new reminder.",
     inputSchema: {
       type: "object",
       properties: {
@@ -326,7 +326,7 @@ export const tools: KunjiTool[] = [
   {
     name: "snooze_reminder",
     description:
-      "Snooze an active Yaad Dila reminder that has already sent a notification (\"remind me again in N minutes\"): its next notification comes in this many minutes instead, then the regular schedule continues (regular times that pass during the snooze are skipped). For a reminder set to a number of times, the snoozed notification counts as one of them.",
+      "Snooze an active Suchna reminder that has already sent a notification (\"remind me again in N minutes\"): its next notification comes in this many minutes instead, then the regular schedule continues (regular times that pass during the snooze are skipped). For a reminder set to a number of times, the snoozed notification counts as one of them.",
     inputSchema: {
       type: "object",
       properties: { id: ID_INPUT, minutes: { type: "integer", description: "Minutes from now (1–1440)." } },
@@ -342,7 +342,7 @@ export const tools: KunjiTool[] = [
   {
     name: "set_reminder_active",
     description:
-      "Pause (active: false) or resume (active: true) a Yaad Dila reminder, like its switch in the app. Resuming skips the times missed while paused. A finished reminder can't be resumed.",
+      "Pause (active: false) or resume (active: true) a Suchna reminder, like its switch in the app. Resuming skips the times missed while paused. A finished reminder can't be resumed.",
     inputSchema: {
       type: "object",
       properties: { id: ID_INPUT, active: { type: "boolean", description: "true to resume, false to pause." } },

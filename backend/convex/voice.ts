@@ -8,7 +8,7 @@ import { draftSchema, systemPrompt, toDraft } from "./lib/voice";
 
 // Voice reminders: the device recognises speech and sends the text here; kunji's
 // gateway asks the user's own AI key (saved at kunji.pknspace.com, found by the
-// user's email) for the reminder fields. yaad-dila holds no AI keys.
+// user's email) for the reminder fields. suchna holds no AI keys.
 
 export const callerEmail = internalQuery({
   args: {},
@@ -60,7 +60,7 @@ export const parse = action({
       });
     } catch (err) {
       if (err instanceof KunjiError) {
-        if (err.code === "unauthorized") console.error("kunji refused yaad-dila's secret:", err.message);
+        if (err.code === "unauthorized") console.error("kunji refused suchna's secret:", err.message);
         throw new ConvexError(ERRORS[err.code]);
       }
       throw new ConvexError("aiUnavailable");

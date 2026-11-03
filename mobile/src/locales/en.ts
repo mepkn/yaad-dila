@@ -1,6 +1,6 @@
 const en = {
   common: {
-    appName: "Yaad Dila",
+    appName: "Suchna",
     cancel: "Cancel",
     save: "Save",
     delete: "Delete",
@@ -169,7 +169,7 @@ const en = {
     pushUnavailable: "Push needs a development build on a real device",
     pushNotConfigured: "Push isn't configured (no EAS project ID)",
     sendTest: "Send test notification",
-    testTitle: "Yaad Dila test",
+    testTitle: "Suchna test",
     testMessage: "Notifications are working.",
     testSent: "Sent to {{n}} device(s).",
     appearance: "Appearance",
@@ -201,7 +201,7 @@ const en = {
       noAiKey: "Voice uses your own AI key. Add one at kunji.pknspace.com, signed in with this email.",
       aiKeyRefused: "Your AI provider refused the key saved in kunji. Check it at kunji.pknspace.com.",
       aiRateLimited: "Too many requests right now. Try again in a minute.",
-      notConnected: "Yaad Dila isn't connected to kunji right now. Try again later.",
+      notConnected: "Suchna isn't connected to kunji right now. Try again later.",
       aiUnavailable: "Couldn't reach the AI. Check your connection and try again.",
       unparseable: "Couldn't understand that. Try rephrasing.",
     },

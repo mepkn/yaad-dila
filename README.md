@@ -1,6 +1,6 @@
-# Yaad Dila (याद दिला)
+# Suchna (सूचना)
 
-"Remind me" in Hindi. A recurring-reminder app for Android with push notifications,
+"Notice" in Hindi. A recurring-reminder app for Android with push notifications,
 voice input and English/Hindi, built with Expo and Convex.
 
 Platform: Android (sideloaded APK; Play Store later).
@@ -55,7 +55,7 @@ In `backend/`:
 
 ```sh
 npx @convex-dev/auth      # interactive: generates JWT_PRIVATE_KEY + JWKS
-npx convex env set SITE_URL yaaddila://auth   # needs a host: Convex Auth strips a trailing "/"
+npx convex env set SITE_URL suchna://auth   # needs a host: Convex Auth strips a trailing "/"
 npx convex env set ALLOWED_EMAILS you@example.com   # comma-separated; nobody else can sign up or sign in
 ```
 
@@ -102,13 +102,13 @@ No root `package.json`: run each part's scripts in its folder.
 ## Deployment
 
 The app is two parts. The backend is the Convex production deployment `formal-setter-463`
-(`https://formal-setter-463.convex.cloud`). The Android app is built with EAS (`@mepkn/yaad-dila`).
+(`https://formal-setter-463.convex.cloud`). The Android app is built with EAS (`@mepkn/suchna`).
 
 ### One-time setup (already done)
 
 - `backend/.env.prod.local` (git-ignored) holds `CONVEX_DEPLOY_KEY=prod:...` (dashboard → Settings → Deploy key). See `backend/.env.example`.
 - `mobile/.eas-token` (git-ignored, see `mobile/.env.example`) holds `export EXPO_TOKEN=...` for the personal Expo account. The scripts read it, so your global `eas` login is never used or changed.
-- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=yaaddila://auth` `ALLOWED_EMAILS`, `RESEND_API_KEY`, `KUNJI_SECRET` and `KUNJI_URL` are set.
+- On the production Convex deployment, `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL=suchna://auth` `ALLOWED_EMAILS`, `RESEND_API_KEY`, `KUNJI_SECRET` and `KUNJI_URL` are set.
 - The EAS environments `preview` and `production` have `EXPO_PUBLIC_CONVEX_URL=https://formal-setter-463.convex.cloud`.
 
 ### Backend
@@ -124,7 +124,7 @@ Run it whenever `backend/convex/` changes.
 #### Push credentials (FCM)
 
 1. In the [Firebase console](https://console.firebase.google.com), add an Android app
-   `com.pknspace.yaaddila`. Its `google-services.json` is committed in `mobile/`
+   `com.pknspace.suchna`. Its `google-services.json` is committed in `mobile/`
    and referenced from `mobile/app.json`.
 2. In Firebase, go to Project settings → Service accounts and click **Generate new private key**.
 3. Run `scripts/eas.sh credentials`, then choose Android → **Google Service Account** →
@@ -134,8 +134,8 @@ Run it whenever `backend/convex/` changes.
 
 ```sh
 scripts/build-android.sh preview local   # or `preview cloud` to build on EAS
-adb uninstall com.pknspace.yaaddila   # first time: remove the development build
-adb install -r mobile/dist/yaad-dila-preview-*.apk
+adb uninstall com.pknspace.suchna   # first time: remove the development build
+adb install -r mobile/dist/suchna-preview-*.apk
 ```
 
 A release build bundles the JavaScript and talks to the production backend. It doesn't need
@@ -169,7 +169,7 @@ uploads new builds.
 - **The app** (`mobile/src/`, its own `package.json`) uses Expo Router, NativeWind and React Native Reusables. The RNR primitives live in `mobile/src/components/ui/`, and screens only use the app's own wrappers in `mobile/src/components/cmp/cmp-*.tsx`.
 - **Convex** (`backend/convex/`, its own `package.json`) is the entire backend.
   - `schema.ts`: `reminders`, `tags`, `pushTokens`, plus the Convex Auth tables. `reminderTags` is a join table that mirrors `reminders.tagIds`, so that tag counts and tag deletion are index lookups.
-  - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. Sign-up and password reset need a 6-digit code by email (`otp.ts`, sent through Resend from `Yaad Dila <noreply@send.pknspace.com>`; without `RESEND_API_KEY` the code is only logged in the `convex dev` output). The app keeps its tokens in `expo-secure-store`.
+  - `auth.ts`: Convex Auth with the Password provider. Only emails in `ALLOWED_EMAILS` can sign up or sign in, and `requireUserId` re-checks the list on every call, so removing an email also ends that user's sessions. Sign-up and password reset need a 6-digit code by email (`otp.ts`, sent through Resend from `Suchna <noreply@send.pknspace.com>`; without `RESEND_API_KEY` the code is only logged in the `convex dev` output). The app keeps its tokens in `expo-secure-store`.
   - `reminders.ts` and `tags.ts`: the public API. Every function gets the user from `getAuthUserId` and checks that the user owns every document it touches.
   - `kunji.ts` + `lib/kunji.ts`: the kunji app contract (`GET /kunji/tools`, `POST /kunji/access`, `POST /kunji/call`, Bearer `KUNJI_SECRET`). Tools run as the single verified user with kunji's email, through the same helpers as the app (`insertReminder`, `setReminderActive`). Snooze sets the next fire to now + N minutes only after a notification was sent; the fire after it returns to the regular times.
   - `fire.ts`: the scheduled `fire` action, then `recordFire`.
@@ -180,5 +180,5 @@ uploads new builds.
   - **Units and time zones.** Minutes and hours are exact durations. Days, weeks and months follow the local calendar of the reminder's `timeZone`, which is the IANA zone the device sent when the reminder was saved.
   - **Edit, pause, resume, delete.** Editing, pausing and deleting cancel the pending run. Resuming and editing schedule the first occurrence that hasn't passed yet; missed occurrences are skipped and don't count toward `repeatTimes`.
   - **Failures.** If no device is registered or Expo returns an error, the schedule still advances and the reason goes into `lastError`. The next successful send clears it. Tokens that Expo reports as `DeviceNotRegistered` are deleted.
-- **Updates** (`mobile/src/lib/update.ts`): the Release workflow builds with `EXPO_PUBLIC_COMMIT` set to the short SHA, the same as the release tag. On launch the app asks GitHub for the latest release; a different tag offers the update. The APK is downloaded to the app's cache (`update/`) and opened with `INSTALL_PACKAGE` (needs `REQUEST_INSTALL_PACKAGES`; Android asks once to allow installs from Yaad Dila). Every launch deletes that folder. Builds without a SHA (local, dev) skip the check. An APK you downloaded yourself with a browser lives in Downloads and isn't the app's to delete.
-- **Voice.** On-device speech-to-text (`expo-speech-recognition`) produces text, and typed text works too. The app sends that text to the `voice.parse` action, which asks kunji's gateway (`lib/kunji.ts` `generate`, `fast` model, JSON Schema answer) to fill the reminder fields with the user's own AI key, found by their email. The prompt and the checks on the answer are in `lib/voice.ts`. yaad-dila holds no AI keys; without one, the app points to kunji.pknspace.com. An old Gemini key left on the device is deleted when the voice screen opens.
+- **Updates** (`mobile/src/lib/update.ts`): the Release workflow builds with `EXPO_PUBLIC_COMMIT` set to the short SHA, the same as the release tag. On launch the app asks GitHub for the latest release; a different tag offers the update. The APK is downloaded to the app's cache (`update/`) and opened with `INSTALL_PACKAGE` (needs `REQUEST_INSTALL_PACKAGES`; Android asks once to allow installs from Suchna). Every launch deletes that folder. Builds without a SHA (local, dev) skip the check. An APK you downloaded yourself with a browser lives in Downloads and isn't the app's to delete.
+- **Voice.** On-device speech-to-text (`expo-speech-recognition`) produces text, and typed text works too. The app sends that text to the `voice.parse` action, which asks kunji's gateway (`lib/kunji.ts` `generate`, `fast` model, JSON Schema answer) to fill the reminder fields with the user's own AI key, found by their email. The prompt and the checks on the answer are in `lib/voice.ts`. suchna holds no AI keys; without one, the app points to kunji.pknspace.com. An old Gemini key left on the device is deleted when the voice screen opens.

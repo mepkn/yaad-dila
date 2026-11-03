@@ -2,7 +2,7 @@ import type { Translations } from "./en";
 
 const hi: Translations = {
   common: {
-    appName: "याद दिला",
+    appName: "सूचना",
     cancel: "रद्द करें",
     save: "सहेजें",
     delete: "हटाएँ",
@@ -171,7 +171,7 @@ const hi: Translations = {
     pushUnavailable: "पुश के लिए असली डिवाइस पर डेवलपमेंट बिल्ड चाहिए",
     pushNotConfigured: "पुश सेट नहीं है (EAS प्रोजेक्ट ID नहीं है)",
     sendTest: "टेस्ट नोटिफ़िकेशन भेजें",
-    testTitle: "याद दिला टेस्ट",
+    testTitle: "सूचना टेस्ट",
     testMessage: "नोटिफ़िकेशन काम कर रहे हैं।",
     testSent: "{{n}} डिवाइस पर भेजा गया।",
     appearance: "रूप",
@@ -203,7 +203,7 @@ const hi: Translations = {
       noAiKey: "वॉइस आपकी अपनी AI कुंजी से चलता है। इसी ईमेल से kunji.pknspace.com पर कुंजी जोड़ें।",
       aiKeyRefused: "आपके AI प्रदाता ने kunji में सहेजी कुंजी अस्वीकार कर दी। kunji.pknspace.com पर जाँचें।",
       aiRateLimited: "अभी बहुत ज़्यादा अनुरोध हैं। एक मिनट बाद कोशिश करें।",
-      notConnected: "याद दिला अभी kunji से जुड़ा नहीं है। बाद में कोशिश करें।",
+      notConnected: "सूचना अभी kunji से जुड़ा नहीं है। बाद में कोशिश करें।",
       aiUnavailable: "AI से संपर्क नहीं हो सका। इंटरनेट जाँचकर फिर कोशिश करें।",
       unparseable: "समझ नहीं आया। दूसरे शब्दों में कोशिश करें।",
     },

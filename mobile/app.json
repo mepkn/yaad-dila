@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Yaad Dila",
-    "slug": "yaad-dila",
+    "name": "Suchna",
+    "slug": "suchna",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "yaaddila",
+    "scheme": "suchna",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.pknspace.yaaddila",
+      "bundleIdentifier": "com.pknspace.suchna",
       "infoPlist": {
-        "NSSpeechRecognitionUsageDescription": "Yaad Dila converts your speech to text to create reminders.",
-        "NSMicrophoneUsageDescription": "Yaad Dila uses the microphone so you can create reminders by voice."
+        "NSSpeechRecognitionUsageDescription": "Suchna converts your speech to text to create reminders.",
+        "NSMicrophoneUsageDescription": "Suchna uses the microphone so you can create reminders by voice."
       }
     },
     "android": {
@@ -23,11 +23,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.pknspace.yaaddila",
+      "package": "com.pknspace.suchna",
       "permissions": [
         "POST_NOTIFICATIONS",
         "RECORD_AUDIO",
-        "REQUEST_INSTALL_PACKAGES"
+        "REQUEST_INSTALL_PACKAGES",
+        "android.permission.RECORD_AUDIO"
       ],
       "googleServicesFile": "./google-services.json"
     },
@@ -52,8 +53,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Yaad Dila uses the microphone so you can create reminders by voice.",
-          "speechRecognitionPermission": "Yaad Dila converts your speech to text to create reminders.",
+          "microphonePermission": "Suchna uses the microphone so you can create reminders by voice.",
+          "speechRecognitionPermission": "Suchna converts your speech to text to create reminders.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]
@@ -74,7 +75,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d6affc9d-5daa-423f-92da-9ca6f5fbb006"
+        "projectId": "dd34189c-f5c9-430f-a7da-d0bcd57a1fe1"
       }
     },
     "owner": "mepkn",

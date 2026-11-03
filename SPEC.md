@@ -1,6 +1,6 @@
-# Yaad Dila — Build Spec
+# Suchna — Build Spec
 
-Build "Yaad Dila" (याद दिला — Hindi for "remind me"), a recurring-reminder mobile app,
+Build "Suchna" (सूचना — Hindi for "notice"), a recurring-reminder mobile app,
 using Expo + Convex + expo-notifications.
 
 ## Stack
