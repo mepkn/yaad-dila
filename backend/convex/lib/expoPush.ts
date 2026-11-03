@@ -3,6 +3,9 @@ import { env } from "../_generated/server";
 export const ANDROID_CHANNEL_ID = "reminders";
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const MAX_PER_REQUEST = 100;
+// This app's Expo project. Tokens from another project (e.g. the app before
+// its rename) can't be sent with ours, so they are dropped like unregistered ones.
+export const EXPO_PROJECT = "@mepkn/suchna";
 
 export type PushMessage = {
   title: string;
@@ -36,29 +39,46 @@ export async function sendPush(
     headers.Authorization = `Bearer ${env.EXPO_ACCESS_TOKEN}`;
   }
 
+  const post = async (batch: string[]) => {
+    const response = await fetch(EXPO_PUSH_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(
+        batch.map((to) => ({
+          to,
+          title: message.title,
+          body: message.body,
+          data: message.data,
+          channelId: ANDROID_CHANNEL_ID,
+          priority: "high",
+          sound: "default",
+        })),
+      ),
+    });
+    const json = (await response.json()) as {
+      data?: Ticket[];
+      errors?: { code?: string; message?: string; details?: unknown }[];
+    };
+    return { response, json };
+  };
+
   for (let i = 0; i < tokens.length; i += MAX_PER_REQUEST) {
-    const batch = tokens.slice(i, i + MAX_PER_REQUEST);
+    let batch = tokens.slice(i, i + MAX_PER_REQUEST);
     let tickets: Ticket[];
     try {
-      const response = await fetch(EXPO_PUSH_URL, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(
-          batch.map((to) => ({
-            to,
-            title: message.title,
-            body: message.body,
-            data: message.data,
-            channelId: ANDROID_CHANNEL_ID,
-            priority: "high",
-            sound: "default",
-          })),
-        ),
-      });
-      const json = (await response.json()) as {
-        data?: Ticket[];
-        errors?: { message?: string }[];
-      };
+      let { response, json } = await post(batch);
+      const mixed = json.errors?.find(
+        (e) => e.code === "PUSH_TOO_MANY_EXPERIENCE_IDS",
+      );
+      if (mixed) {
+        // details maps each Expo project to its tokens in this batch.
+        const byProject = (mixed.details ?? {}) as Record<string, string[]>;
+        const ours = new Set(byProject[EXPO_PROJECT] ?? []);
+        result.unregisteredTokens.push(...batch.filter((t) => !ours.has(t)));
+        batch = batch.filter((t) => ours.has(t));
+        if (batch.length === 0) continue;
+        ({ response, json } = await post(batch));
+      }
       if (!response.ok || !Array.isArray(json.data)) {
         result.error ??= `Expo push HTTP ${response.status}: ${
           json.errors?.[0]?.message ?? "unexpected response"

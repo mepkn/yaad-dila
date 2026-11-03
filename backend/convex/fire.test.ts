@@ -191,6 +191,40 @@ describe("fire", () => {
   });
 });
 
+describe("tokens from another Expo project", () => {
+  test("are deleted and the rest are sent again", async () => {
+    const t = newTest();
+    const OLD = "ExponentPushToken[old-app]";
+    const bodies: { to: string }[][] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: { body: string }) => {
+      const batch = JSON.parse(init.body) as { to: string }[];
+      bodies.push(batch);
+      if (batch.some((m) => m.to === OLD)) {
+        return new Response(JSON.stringify({ errors: [{
+          code: "PUSH_TOO_MANY_EXPERIENCE_IDS",
+          message: "All push notification messages in the same request must be of the same project",
+          details: { "@mepkn/suchna": [TOKEN], "@mepkn/yaad-dila": [OLD] },
+        }] }), { status: 400 });
+      }
+      return new Response(JSON.stringify({ data: batch.map(() => ({ status: "ok", id: "x" })) }));
+    }));
+    const { as } = await setup(t);
+    await as.mutation(api.pushTokens.register, { token: OLD, deviceName: "Old app" });
+    const id = await as.mutation(api.reminders.create, hourly());
+
+    await advance(t, 10 * MIN);
+
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0].map((m) => m.to).sort()).toEqual([OLD, TOKEN].sort());
+    expect(bodies[1].map((m) => m.to)).toEqual([TOKEN]);
+    const tokens = await t.run((ctx) => ctx.db.query("pushTokens").collect());
+    expect(tokens.map((r) => r.token)).toEqual([TOKEN]);
+    const r = await getReminder(t, id);
+    expect(r.lastError).toBeUndefined();
+    expect(r.firedCount).toBe(1);
+  });
+});
+
 describe("pause, resume, edit, delete", () => {
   test("pausing cancels the pending run", async () => {
     const t = newTest();
